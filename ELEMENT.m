@@ -105,5 +105,6 @@ classdef ELEMENT < handle
                 print("Input error: Structure Plane not coherent with elements direction")
             end
         end
+        
     end
 end
