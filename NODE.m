@@ -57,6 +57,7 @@ classdef NODE < handle
             else
                 bool = false;
             end
+            error('Element not linked to node')
         end
         function bool = isNeg(obj,element)
             if element.nodeNeg == obj 
@@ -64,6 +65,7 @@ classdef NODE < handle
             else
                 bool = false;
             end
+            error('Element not linked to node')
         end
         
         % Post-Treatment Methods

@@ -98,13 +98,15 @@ classdef ELEMENT < handle
         
         % Post-Treatment Methods
         function setElementPlane(obj,v)
-            if ( v' * obj.e1 ) < .5 
-                obj.e2 = v - ( v' * obj.e1 ) * obj.e1;
-                obj.e3 = cross(obj.e1,obj.e2);
+            if ( v' * obj.e1 ) < .05 
+                obj.e3 = v - ( v' * obj.e1 ) * obj.e1;
+                obj.e3 = obj.e3 / norm(obj.e3);
+                obj.e2 = cross(obj.e3,obj.e1);
             else
-                print("Input error: Structure Plane not coherent with elements direction")
+                error('Input error: Structure Plane not coherent with elements direction')
             end
         end
         
     end
+    
 end

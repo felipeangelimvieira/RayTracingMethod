@@ -1,4 +1,4 @@
-classdef SYSTEM<handle
+classdef SYSTEM < handle
     
     properties
         
@@ -48,7 +48,9 @@ classdef SYSTEM<handle
                     x = node;
                 end
             end
+            error('No node with such id');
         end
+        
         
         
     end
