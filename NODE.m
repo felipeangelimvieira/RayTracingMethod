@@ -9,6 +9,9 @@ classdef NODE < handle
         % Node's Position
         r
         
+        % Node's Element List
+        elementList
+        
         % Mass, Stiffness and Damping
         M
         K
@@ -39,6 +42,9 @@ classdef NODE < handle
             obj.K = zeros(6);
             obj.C = zeros(6);
             
+            % Element's List empty by default
+            obj.elementList = [];
+            
             % Node initialised as free
             obj.DeltaFree = eye(6);
             obj.e1 = [1;0;0];
@@ -49,7 +55,10 @@ classdef NODE < handle
             obj.static = true;
             
         end
-         
+        function addElement(obj,element)
+            obj.elementList = [obj.elementList element];
+        end
+        
         % Main Methods
         function bool = isPos(obj,element)
             if element.nodePos == obj

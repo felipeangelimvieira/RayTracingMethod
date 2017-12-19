@@ -38,8 +38,13 @@ classdef ELEMENT < handle
             obj.IIn = IIn;
             obj.IOut = IOut;
             
-            obj.L = norm( nodePos.pos - nodeNeg.pos );
-            obj.e1 = ( nodePos.pos - nodeNeg.pos ) / obj.L;
+            obj.nodeNeg = nodeNeg;
+            obj.nodeNeg.addElement(obj);
+            obj.nodePos = nodePos;
+            obj.nodePos.addElement(obj);
+            
+            obj.L = norm( nodePos.r - nodeNeg.r );
+            obj.e1 = ( nodePos.r - nodeNeg.r ) / obj.L;
             
         end
         
