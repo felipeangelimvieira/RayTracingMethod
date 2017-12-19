@@ -1,15 +1,15 @@
-classdef ELEMENT<handle
+classdef ELEMENT < handle
     
     properties
         
-        % Identification de l'element
+        % Element's indentifier
         id
         
-        % Noeuds à l'extremité
-        noeudPos
-        noeudNeg
+        % Extremities Nodes
+        nodePos
+        nodeNeg
         
-        % Propriétés Physiques et Geometriques
+        % Physical and Geometrical Propoerties
         rho
         S
         E
@@ -18,7 +18,7 @@ classdef ELEMENT<handle
         IOut
         L
         
-        % Repère de l'element
+        % Element's referential
         e1
         e2
         e3
@@ -27,7 +27,8 @@ classdef ELEMENT<handle
     
     methods
         
-        function obj =  ELEMENT(id,noeudNeg,noeudPos,rho,S,E,G,IIn,IOut)
+        % Definition methods
+        function obj =  ELEMENT(id,nodeNeg,nodePos,rho,S,E,G,IIn,IOut)
             
             obj.id = id;
             obj.rho = rho;
@@ -37,14 +38,12 @@ classdef ELEMENT<handle
             obj.IIn = IIn;
             obj.IOut = IOut;
             
-            posNoeudPos = [noeudPos.x ; noeudPos.y; noeudPos.z];
-            posNoeudNeg = [noeudNeg.x ; noeudNeg.y; noeudNeg.z];
-            
-            obj.L = norm( posNoeudPos - posNoeudNeg );
-            obj.e1 = ( posNoeudPos - posNoeudNeg ) / obj.L;
+            obj.L = norm( nodePos.pos - nodeNeg.pos );
+            obj.e1 = ( nodePos.pos - nodeNeg.pos ) / obj.L;
             
         end
         
+        % Wave Numbers
         function x = kt(obj,w)
             x = w * sqrt( obj.rho / obj.E ) ;
         end
@@ -58,6 +57,7 @@ classdef ELEMENT<handle
             x = sqrt( w * sqrt( (obj.rho*obj.S)/(obj.E*obj.IOut) ) ) ;
         end  
         
+        % Position and Effort Operators
         function X = PsiPos(obj,w)
             X = [ 1                 0                0                0                  0      0;
                   0                 1                1                0                  0      0;
@@ -75,31 +75,33 @@ classdef ELEMENT<handle
                   0     1i*obj.kfIn(w)    1i*obj.kfIn(w)                0                 0       0;];
         end
         function X = PhiPos(obj,w)
-            X = [ -obj.E*obj.S*1i*obj.kt(w)                                0                                 0                                    0                                  0                                       0;
-                                         0  obj.E*obj.IIn*1i*(obj.kfIn(w)^3)   -obj.E*obj.IIn* (obj.kfIn(w)^3)                                    0                                  0                                       0;
-                                         0                                 0                                 0   obj.E*obj.IOut*1i*(obj.kfOut(w)^3)     -obj.E*obj.IIn*(obj.kfOut(w)^3)                                      0;
-                                         0                                 0                                 0                                    0                                  0    obj.G*(obj.IIn + obj.IOut)*obj.kt(w);
-                                         0                                 0                                 0     -obj.E*obj.IOut*(obj.kfOut(w)^2)    obj.E*obj.IIn* (obj.kfOut(w)^2)                                       0;
-                                         0    -obj.E*obj.IIn*(obj.kfIn(w)^2)    obj.E*obj.IIn* (obj.kfIn(w)^2)                                    0                                  0                                       0;];
+            X = [ -obj.E*obj.S*1i*obj.kt(w)                                 0                                 0                                    0                                  0                                       0;
+                                         0  -obj.E*obj.IIn*1i*(obj.kfIn(w)^3)    obj.E*obj.IIn* (obj.kfIn(w)^3)                                    0                                  0                                       0;
+                                         0                                  0                                 0  -obj.E*obj.IOut*1i*(obj.kfOut(w)^3)      obj.E*obj.IIn*(obj.kfOut(w)^3)                                      0;
+                                         0                                  0                                 0                                    0                                  0    obj.G*(obj.IIn + obj.IOut)*obj.kt(w);
+                                         0                                  0                                 0      obj.E*obj.IOut*(obj.kfOut(w)^2)    -obj.E*obj.IIn* (obj.kfOut(w)^2)                                       0;
+                                         0    -obj.E*obj.IIn*(obj.kfIn(w)^2)    obj.E*obj.IIn* (obj.kfIn(w)^2)                                    0                                   0                                       0;];
         end
         function X = PhiNeg(obj,w)
             X = [ obj.E*obj.S*1i*obj.kt(w)                                  0                                 0                                  0                                  0                                        0;
-                                         0  -obj.E*obj.IIn*1i*(obj.kfIn(w)^3)    obj.E*obj.IIn* (obj.kfIn(w)^3)                                  0                                  0                                        0;
-                                         0                                  0                                 0  -obj.E*obj.IOut* (obj.kfOut(w)^3)      obj.E*obj.IIn*(obj.kfOut(w)^3)                                       0;
+                                         0   obj.E*obj.IIn*1i*(obj.kfIn(w)^3)   -obj.E*obj.IIn* (obj.kfIn(w)^3)                                  0                                  0                                        0;
+                                         0                                  0                                 0   obj.E*obj.IOut* (obj.kfOut(w)^3)     -obj.E*obj.IIn*(obj.kfOut(w)^3)                                       0;
                                          0                                  0                                 0                                  0                                  0    -obj.G*(obj.IIn + obj.IOut)*obj.kt(w);
-                                         0                                  0                                 0  -obj.E*obj.IOut* (obj.kfOut(w)^2)      obj.E*obj.IIn*(obj.kfOut(w)^2)                                       0;
+                                         0                                  0                                 0   obj.E*obj.IOut* (obj.kfOut(w)^2)     -obj.E*obj.IIn*(obj.kfOut(w)^2)                                       0;
                                          0    -obj.E*obj.IIn* (obj.kfIn(w)^2)    obj.E*obj.IIn* (obj.kfIn(w)^2)                                  0                                  0                                        0;];
         end
         
+        % Displacement Operator
         function X = Delta(obj,w,s)
             X = diag( [exp(-1i*s*obj.kt(w)) exp(-1i*s*obj.kfIn(w)) exp(-s*obj.kfIn(w)) exp(-1i*s*obj.kfOut(w)) exp(-s*obj.kfOut(w)) exp(-1i*s*obj.kr(w))]);
         end
         
-        function setIInAxis(obj,v)
-            if ( v' * obj.e1 )< .5 :
-                e2 = v - ( v' * obj.e1 ) * e1;
+        % Post-Treatment Methods
+        function setElementPlane(obj,v)
+            if ( v' * obj.e1 ) < .5 
+                obj.e2 = v - ( v' * obj.e1 ) * obj.e1;
+                obj.e3 = cross(obj.e1,obj.e2);
             else
-                e2 = False;
                 print("Input error: Structure Plane not coherent with elements direction")
             end
         end

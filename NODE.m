@@ -1,34 +1,75 @@
 
-classdef NODE<handle
+classdef NODE < handle
     
     properties
        
-        % Identification du noeud
+        % Node's Identifier
         id
         
-        % Position du noeud
-        x
-        y
-        z
+        % Node's Position
+        r
         
-        % Masse, Raideur et Amortissement
+        % Mass, Stiffness and Damping
         M
         K
         C
         
-        % Liaisons du noeud
+        % Node's freedom of movement
         DeltaFree
         e1
         e2
         e3
         
-        % Optimisation de Calcul
+        % Calculation's optimisation
         static
         
     end
     
     methods
         
+        % Definition
+        function obj = NODE(id,r)
+           
+            % User inputs the node's position and id
+            obj.id = id;
+            obj.r = r;
+            
+            % Mass, Stiffness and Damping set nules by default
+            obj.M = zeros(6);
+            obj.K = zeros(6);
+            obj.C = zeros(6);
+            
+            % Node initialised as free
+            obj.DeltaFree = eye(6);
+            obj.e1 = [1;0;0];
+            obj.e2 = [0;1;0];
+            obj.e3 = [0;0;1];
+            
+            % Non dynamic transmission behaviour supposed at begining
+            obj.static = true;
+            
+        end
+         
+        % Main Methods
+        function bool = isPos(obj,element)
+            if element.nodePos == obj
+                bool = true;
+            else
+                bool = false;
+            end
+        end
+        function bool = isNeg(obj,element)
+            if element.nodeNeg == obj 
+                bool = true;
+            else
+                bool = false;
+            end
+        end
+        
+        % Post-Treatment Methods
+        function ponctualMass(obj,m)
+            obj.M(1:3,1:3) = m*eye(3);
+        end
 
     end
 end
