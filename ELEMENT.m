@@ -101,6 +101,12 @@ classdef ELEMENT < handle
             X = diag( [exp(-1i*s*obj.kt(w)) exp(-1i*s*obj.kfIn(w)) exp(-s*obj.kfIn(w)) exp(-1i*s*obj.kfOut(w)) exp(-s*obj.kfOut(w)) exp(-1i*s*obj.kr(w))]);
         end
         
+        % Rotation Operator
+        function X = Rotation(obj)
+            X = [inv([e1 e2 e3])            zeros(3);
+                        zeros(3)    inv([e1 e2 e3])];
+        end
+        
         % Post-Treatment Methods
         function setElementPlane(obj,v)
             if ( v' * obj.e1 ) < .05 

@@ -90,16 +90,39 @@ classdef SYSTEM < handle
         end
         
         function InitializeMatrix(obj)
+            
+            % Define Matrix size
             n = size(obj.elementList,1);
             T = zeros(12*n);
             D = zeros(12*n);
+            
+            %Calculates static contributions to T (w is set to 1 to shorten
+            %calculation)
             for node = obj.nodeList
                 if element.static
-                    % Calculer Tn
-                    % La placer dans la Matrice Global
+                    obj.localTransmission(obj,node,1);
                 end
             end
         end % Define the size of D and T matrix, set all values to 0, and assemble T static parts
+        
+        function localTransmission(obj,node,w)
+        end
+        function globalTransmission(obj,w)
+            for node = obj.nodeList
+                if ~element.static
+                    obj.localTransmission(obj,node,w);
+                end
+            end
+        end
+        function globalDispersion(obj,w)
+            i = 0;
+            for element = obj.elementList
+                obj.D( 1+6*i : 6+6*i , 1+6*i : 6+6*i ) = element.Delta(w,element.L);
+                i = i + 1;
+                obj.D( 1+6*i : 6+6*i , 1+6*i : 6+6*i ) = element.Delta(w,element.L);
+                i = i + 1;
+            end
+        end
         
     end
 end
