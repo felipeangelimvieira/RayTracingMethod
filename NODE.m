@@ -76,7 +76,14 @@ classdef NODE < handle
             end
             error('Element not linked to node')
         end
-        
+        function X = FreedomInGlobal(obj)
+            Rotation = inv([obj.e1 obj.e2 obj.e3]);
+            X = Rotation*obj.DeltaFree;
+        end
+        function X = RestrictionInGlobal(obj)
+            Rotation = inv([obj.e1 obj.e2 obj.e3]);
+            X = Rotation*(eye(6)-obj.DeltaFree);
+        end
         % Post-Treatment Methods
         function ponctualMass(obj,m)
             obj.M(1:3,1:3) = m*eye(3);

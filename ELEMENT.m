@@ -45,6 +45,8 @@ classdef ELEMENT < handle
             
             obj.L = norm( nodePos.r - nodeNeg.r );
             obj.e1 = ( nodePos.r - nodeNeg.r ) / obj.L;
+            obj.e2 = [0;0;0];
+            obj.e3 = [0;0;0];
             
         end
         
@@ -103,8 +105,8 @@ classdef ELEMENT < handle
         
         % Rotation Operator
         function X = Rotation(obj)
-            X = [inv([e1 e2 e3])            zeros(3);
-                        zeros(3)    inv([e1 e2 e3])];
+            X = [inv([e1 e2 e3])       zeros(3);
+                   zeros(3)      inv([e1 e2 e3])];
         end
         
         % Post-Treatment Methods
