@@ -112,7 +112,7 @@ classdef SYSTEM < handle
             %Calculates static contributions to T (w is set to 1 to shorten
             %calculation)
             for node = obj.nodeList
-                if element.static
+                if node.static
                     obj.localTransmission(obj,node,1);
                 end
             end
