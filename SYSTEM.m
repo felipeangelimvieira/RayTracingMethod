@@ -196,7 +196,55 @@ classdef SYSTEM < handle
             % Tn Calcul
             MIn = node.FreedomInGlobal*MInFree + node.RestrictionInGlobal*MInBlocked;
             MOut = node.FreedomInGlobal*MOutFree + node.RestrictionInGlobal*MOutBlocked;
-            Tn = inv(MOut)*MIn;
+            Tn = MOut\MIn;
+            
+            % Tn placing in T
+            
+            iLocal = 0; 
+            for elementI = node.elementList % Tn is broken in Lines
+                
+                % Search for corresponding T line
+                i = 0;
+                for element = obj.elementList 
+                    if element == elementI
+                        break
+                    end
+                    i = i+1;
+                end
+                
+                % Determines whether the leaving wave is positive or negative
+                if node.isPos(elementI)
+                    iAux = 1;
+                else
+                    iAux = 0;
+                end
+                
+                jLocal = 0;
+                for elementJ = node.elementList % The Line is broken into its blocks   
+                    
+                    % Search for corresponding T line
+                    j = 0;
+                    for element = obj.elementList 
+                        if element == elementJ
+                            break
+                        end
+                        j = j+1;
+                    end
+                    
+                    % Determines whether the leaving wave is positive or negative
+                    if node.isPos(elementI)
+                        jAux = 1;
+                    else
+                        jAux = 0;
+                    end
+                    
+                    % Place the block
+                    obj.T ( ( 1 + 12*i + 6*iAux ) : ( 6 + 12*i + 6*iAux ) , ( 1 + 12*j + 6*jAux ) : ( 6 + 12*j + 6*jAux ) ) = Tn ( ( 1 + iLocal ) : ( 6 + iLocal ) , ( 1 + jLocal ) : ( 6 + jLocal ) ); 
+                       
+                    jLocal = jLocal + 1; % Jump to nex block in Tn
+                end
+            iLocal = iLocal + 1; % Jump to next line in Tn
+            end
         end
         function globalTransmission(obj,w)
             for node = obj.nodeList
