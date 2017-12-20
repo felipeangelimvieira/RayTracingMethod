@@ -106,14 +106,14 @@ classdef SYSTEM < handle
             
             % Define Matrix size
             n = size(obj.elementList,1);
-            T = zeros(12*n);
-            D = zeros(12*n);
+            obj.T = zeros(12*n);
+            obj.D = zeros(12*n);
             
             %Calculates static contributions to T (w is set to 1 to shorten
             %calculation)
             for node = obj.nodeList
                 if node.static
-                    obj.localTransmission(obj,node,1);
+                    obj.localTransmission(node,1);
                 end
             end
         end % Define the size of D and T matrix, set all values to 0, and assemble T static parts
@@ -140,8 +140,10 @@ classdef SYSTEM < handle
                 end
                 j=j+1;      
             end
+            
             % Mass, Stiffness and Damping
-            MKC = node.K - i*w*node.C - w*w*M;
+            j = j-1;
+            MKC = node.K - i*w*node.C - w*w*node.M;
             if node.isPos(element)
                 MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) - MKC*element.Rotation()*element.PsiPos(w);
                 MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation()*element.PsiNeg(w);
@@ -150,10 +152,15 @@ classdef SYSTEM < handle
                 MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation()*element.PsiPos(w);
             end
             j = 0;
-            i= i+1;
+            i= 1+1;
             % Other Lines (Displacement Continuity)
             % Sub Diagonal
             for element = node.elementList
+                
+                if n==1 % No Sub Diagonal (No equations)
+                    break
+                end
+                
                 if node.isPos(element)
                     MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation()*element.PsiPos(w);
                     MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PsiNeg(w);
@@ -169,6 +176,11 @@ classdef SYSTEM < handle
             end
             % Final Column
             for i = 1:n
+                
+                if n==1 % No Sub Diagonal (No equations)
+                    break
+                end
+                
                 if node.isPos(element)
                     MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiPos(w);
                     MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiNeg(w);
@@ -194,8 +206,16 @@ classdef SYSTEM < handle
             end
             
             % Tn Calcul
-            MIn = node.FreedomInGlobal*MInFree + node.RestrictionInGlobal*MInBlocked;
-            MOut = node.FreedomInGlobal*MOutFree + node.RestrictionInGlobal*MOutBlocked;
+            IFreedom = zeros(6*n);
+            IRestriction = zeros(6*n);
+            for i=0:(n-1)
+                IFreedom( (1 + 6*i) : (6 + 6*i) , (1 + 6*i) : (6 + 6*i) ) = node.FreedomInGlobal;
+                IRestriction( (1 + 6*i) : (6 + 6*i) , (1 + 6*i) : (6 + 6*i) ) = node.RestrictionInGlobal;
+            end
+            
+            MIn = IFreedom*MInFree + IRestriction*MInBlocked;
+            MOut = IFreedom*MOutFree + IRestriction*MOutBlocked;
+            
             Tn = MOut\MIn;
             
             % Tn placing in T
@@ -248,8 +268,8 @@ classdef SYSTEM < handle
         end
         function globalTransmission(obj,w)
             for node = obj.nodeList
-                if ~element.static
-                    obj.localTransmission(obj,node,w);
+                if ~node.static
+                    obj.localTransmission(node,w);
                 end
             end
         end
@@ -261,6 +281,12 @@ classdef SYSTEM < handle
                 obj.D( 1+6*i : 6+6*i , 1+6*i : 6+6*i ) = element.Delta(w,element.L);
                 i = i + 1;
             end
+        end
+        function x = Determinant(obj,w)
+            n = size(obj.elementList,2);
+            obj.globalTransmission(w);
+            obj.globalDispersion(w);
+            x = det(eye(12*n) - obj.T*obj.D);
         end
         
     end

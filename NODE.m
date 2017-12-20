@@ -51,8 +51,8 @@ classdef NODE < handle
             obj.e2 = [0;1;0];
             obj.e3 = [0;0;1];
             
-            % Non dynamic transmission behaviour supposed at begining
-            obj.static = true;
+            % Dynamic transmission behaviour supposed at begining
+            obj.static = false;
             
         end
         function addElement(obj,element)
@@ -63,8 +63,11 @@ classdef NODE < handle
         function bool = isPos(obj,element)
             if element.nodePos == obj
                 bool = true;
-            else
+                return
+            end
+            if element.nodeNeg == obj
                 bool = false;
+                return
             end
             error('Element not linked to node')
         end
@@ -77,12 +80,14 @@ classdef NODE < handle
             error('Element not linked to node')
         end
         function X = FreedomInGlobal(obj)
-            Rotation = inv([obj.e1 obj.e2 obj.e3]);
-            X = Rotation*obj.DeltaFree;
+            X = obj.Rotation*obj.DeltaFree;
         end
         function X = RestrictionInGlobal(obj)
-            Rotation = inv([obj.e1 obj.e2 obj.e3]);
-            X = Rotation*(eye(6)-obj.DeltaFree);
+            X = obj.Rotation*(eye(6)-obj.DeltaFree);
+        end
+        function X = Rotation(obj)
+            X = [inv([obj.e1 obj.e2 obj.e3])                           zeros(3);
+                                    zeros(3)        inv([obj.e1 obj.e2 obj.e3])];
         end
         % Post-Treatment Methods
         function ponctualMass(obj,m)
