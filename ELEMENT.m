@@ -70,30 +70,30 @@ classdef ELEMENT < handle
                   0                 1                1                0                  0      0;
                   0                 0                0                1                  1      0;
                   0                 0                0                0                  0      1;
-                  0                 0                0   1i*obj.kfOut(w)   1i*obj.kfOut(w)      0;
-                  0    -1i*obj.kfIn(w)   -1i*obj.kfIn(w)                0                0      0;];
+                  0                 0                0    i*obj.kfOut(w)       obj.kfOut(w)      0;
+                  0    -1i*obj.kfIn(w)     -obj.kfIn(w)                0                 0      0;];
         end
         function X = PsiNeg(obj,w) 
             X = [ 1                 0                  0                0                 0       0;
                   0                 1                  1                0                 0       0;
                   0                 0                  0                1                 1       0;
                   0                 0                  0                0                 0       1;
-                  0                 0                  0  -1i*obj.kfOut(w)  -1i*obj.kfOut(w)      0;
-                  0     1i*obj.kfIn(w)    1i*obj.kfIn(w)                0                 0       0;];
+                  0                 0                  0   -i*obj.kfOut(w)     -obj.kfOut(w)      0;
+                  0     1i*obj.kfIn(w)       obj.kfIn(w)                0                 0       0;];
         end
         function X = PhiPos(obj,w)
-            X = [ -obj.E*obj.S*1i*obj.kt(w)                                 0                                 0                                    0                                  0                                       0;
-                                         0  -obj.E*obj.IIn*1i*(obj.kfIn(w)^3)    obj.E*obj.IIn* (obj.kfIn(w)^3)                                    0                                  0                                       0;
-                                         0                                  0                                 0  -obj.E*obj.IOut*1i*(obj.kfOut(w)^3)      obj.E*obj.IIn*(obj.kfOut(w)^3)                                      0;
-                                         0                                  0                                 0                                    0                                  0    obj.G*(obj.IIn + obj.IOut)*obj.kt(w);
-                                         0                                  0                                 0      obj.E*obj.IOut*(obj.kfOut(w)^2)    -obj.E*obj.IIn* (obj.kfOut(w)^2)                                       0;
-                                         0    -obj.E*obj.IIn*(obj.kfIn(w)^2)    obj.E*obj.IIn* (obj.kfIn(w)^2)                                    0                                   0                                       0;];
+            X = [ -obj.E*obj.S*1i*obj.kt(w)                                 0                                 0                                    0                                  0                                          0;
+                                         0  -obj.E*obj.IIn*1i*(obj.kfIn(w)^3)    obj.E*obj.IIn* (obj.kfIn(w)^3)                                    0                                  0                                          0;
+                                         0                                  0                                 0  -obj.E*obj.IOut*1i*(obj.kfOut(w)^3)      obj.E*obj.IIn*(obj.kfOut(w)^3)                                         0;
+                                         0                                  0                                 0                                    0                                  0    -i*obj.G*(obj.IIn + obj.IOut)*obj.kt(w);
+                                         0                                  0                                 0      obj.E*obj.IOut*(obj.kfOut(w)^2)    -obj.E*obj.IIn* (obj.kfOut(w)^2)                                         0;
+                                         0    -obj.E*obj.IIn*(obj.kfIn(w)^2)    obj.E*obj.IIn* (obj.kfIn(w)^2)                                    0                                   0                                          0;];
         end
         function X = PhiNeg(obj,w)
             X = [ obj.E*obj.S*1i*obj.kt(w)                                  0                                 0                                  0                                  0                                        0;
                                          0   obj.E*obj.IIn*1i*(obj.kfIn(w)^3)   -obj.E*obj.IIn* (obj.kfIn(w)^3)                                  0                                  0                                        0;
-                                         0                                  0                                 0   obj.E*obj.IOut* (obj.kfOut(w)^3)     -obj.E*obj.IIn*(obj.kfOut(w)^3)                                       0;
-                                         0                                  0                                 0                                  0                                  0    -obj.G*(obj.IIn + obj.IOut)*obj.kt(w);
+                                         0                                  0                                 0  obj.E*obj.IOut*1i*(obj.kfOut(w)^3)     -obj.E*obj.IIn*(obj.kfOut(w)^3)                                       0;
+                                         0                                  0                                 0                                  0                                  0    i*obj.G*(obj.IIn + obj.IOut)*obj.kt(w);
                                          0                                  0                                 0   obj.E*obj.IOut* (obj.kfOut(w)^2)     -obj.E*obj.IIn*(obj.kfOut(w)^2)                                       0;
                                          0    -obj.E*obj.IIn* (obj.kfIn(w)^2)    obj.E*obj.IIn* (obj.kfIn(w)^2)                                  0                                  0                                        0;];
         end

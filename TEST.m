@@ -1,5 +1,6 @@
 import SYSTEM
 
+%%
 Sys = SYSTEM();
 
 Sys.addNode(1,[0;0;0]);
@@ -14,13 +15,17 @@ a.setElementPlane([0;0;1]);
 A = Sys.findNodeById(1);
 A.DeltaFree = zeros(6);
 
+%%
+Sys.showStructure();
+
+%%
 Sys.InitializeMatrix();
 
 R = [];
 Freq = [];
-for freq = 1:1000
-    r = Sys.Determinant(freq*2*pi);
-    R = [R r]
+for freq = 1:.5:100
+    r = Sys.Determinant(freq);
+    R = [R r];
     Freq = [Freq freq];
 end
 plot(abs(Freq),R);
