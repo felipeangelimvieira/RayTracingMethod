@@ -70,7 +70,7 @@ classdef ELEMENT < handle
                   0                 1                1                0                  0      0;
                   0                 0                0                1                  1      0;
                   0                 0                0                0                  0      1;
-                  0                 0                0    i*obj.kfOut(w)       obj.kfOut(w)      0;
+                  0                 0                0    i*obj.kfOut(w)       obj.kfOut(w)     0;
                   0    -1i*obj.kfIn(w)     -obj.kfIn(w)                0                 0      0;];
         end
         function X = PsiNeg(obj,w) 

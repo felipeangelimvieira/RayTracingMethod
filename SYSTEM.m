@@ -129,14 +129,16 @@ classdef SYSTEM < handle
             i = 0;
             j = 0;
             
-            % 1st Line (Effort Continuity)
+            % 1st Line (Effort Continuity):
+            
+            % Element's Effort Contribution
             for element = node.elementList
                 if node.isPos(element)
                     MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PhiPos(w);
-                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PhiNeg(w);
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PhiNeg(w);
                 else
                     MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation()*element.PhiNeg(w);
-                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PhiPos(w);
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PhiPos(w);
                 end
                 j=j+1;      
             end
@@ -151,13 +153,19 @@ classdef SYSTEM < handle
                 MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) - MKC*element.Rotation()*element.PsiNeg(w);
                 MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation()*element.PsiPos(w);
             end
-            j = 0;
-            i= 1+1;
-            % Other Lines (Displacement Continuity)
+            
+            
+            % Other Lines (Displacement Continuity):
             % Sub Diagonal
+            j = 0;
+            i= 1;
             for element = node.elementList
                 
                 if n==1 % No Sub Diagonal (No equations)
+                    break
+                end
+                
+                if i==(n) %End of Sub-Diagonal
                     break
                 end
                 
@@ -170,20 +178,17 @@ classdef SYSTEM < handle
                 end
                 i = i + 1;
                 j = j + 1;
-                if i==(n-1)
-                    break
-                end
             end
+            
             % Final Column
-            for i = 1:n
-                
+            for i = 1:n-1
                 if n==1 % No Sub Diagonal (No equations)
                     break
                 end
                 
                 if node.isPos(element)
-                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiPos(w);
-                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiNeg(w);
+                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation()*element.PsiPos(w);
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PsiNeg(w);
                 else
                     MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation()*element.PsiNeg(w);
                     MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PsiPos(w);
@@ -203,6 +208,8 @@ classdef SYSTEM < handle
                     MInBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiNeg(w);
                     MOutBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiPos(w);
                 end
+                i = i + 1;
+                j = j + 1;
             end
             
             % Tn Calcul
@@ -233,10 +240,10 @@ classdef SYSTEM < handle
                 end
                 
                 % Determines whether the leaving wave is positive or negative
-                if node.isPos(elementI)
-                    iAux = 1;
-                else
+                if node.isNeg(elementI)
                     iAux = 0;
+                else
+                    iAux = 1;
                 end
                 
                 jLocal = 0;
@@ -251,15 +258,15 @@ classdef SYSTEM < handle
                         j = j+1;
                     end
                     
-                    % Determines whether the leaving wave is positive or negative
-                    if node.isPos(elementI)
-                        jAux = 1;
-                    else
+                    % Determines whether the arriving wave is positive or negative
+                    if node.isPos(elementJ)
                         jAux = 0;
+                    else
+                        jAux = 1;
                     end
                     
                     % Place the block
-                    obj.T ( ( 1 + 12*i + 6*iAux ) : ( 6 + 12*i + 6*iAux ) , ( 1 + 12*j + 6*jAux ) : ( 6 + 12*j + 6*jAux ) ) = Tn ( ( 1 + iLocal ) : ( 6 + iLocal ) , ( 1 + jLocal ) : ( 6 + jLocal ) ); 
+                    obj.T ( ( 1 + 12*i + 6*iAux ) : ( 6 + 12*i + 6*iAux ) , ( 1 + 12*j + 6*jAux ) : ( 6 + 12*j + 6*jAux ) ) = Tn( ( 1 + iLocal*6 ) : ( 6 + iLocal*6 ) , ( 1 + jLocal*6 ) : ( 6 + jLocal*6 ) ); 
                        
                     jLocal = jLocal + 1; % Jump to nex block in Tn
                 end

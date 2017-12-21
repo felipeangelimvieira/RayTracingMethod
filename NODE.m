@@ -72,10 +72,13 @@ classdef NODE < handle
             error('Element not linked to node')
         end
         function bool = isNeg(obj,element)
-            if element.nodeNeg == obj 
+            if element.nodeNeg == obj
                 bool = true;
-            else
+                return
+            end
+            if element.nodePos == obj
                 bool = false;
+                return
             end
             error('Element not linked to node')
         end
