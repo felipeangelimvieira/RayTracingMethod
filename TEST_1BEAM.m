@@ -7,27 +7,20 @@ Sys.addNode(1,[0;0;0]);
 Sys.addNode(2,[.5;0;0]);
 Sys.addNode(3,[1;0;0]);
 
-Sys.addNode(4,[1;0.5;0]);
-Sys.addNode(5,[1;1;0]);
 
 
 Sys.addElement(1,1,2,7.86e3,0.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6);
 Sys.addElement(2,2,3,7.86e3,0.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6);
-Sys.addElement(3,3,4,7.86e3,0.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6);
-Sys.addElement(4,4,5,7.86e3,0.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6);
 
 %Sys.addElement(1,1,2,1,1,1,1,1,1);
 %Sys.addElement(2,2,3,1,1,1,1,1,1);
 
 a = Sys.findElementById(1);
 b = Sys.findElementById(2);
-c = Sys.findElementById(3);
-d = Sys.findElementById(4);
+
 
 a.setElementPlane([0;0;1]);
 b.setElementPlane([0;0;1]);
-c.setElementPlane([1;0;0]);
-d.setElementPlane([1;0;0]);
 
 A = Sys.findNodeById(1);
 B = Sys.findNodeById(2);
@@ -41,4 +34,4 @@ Sys.showStructure();
 %%
 Sys.InitializeMatrix();
 format long
-modalFreq = Sys.Frequencies(10,0.1);
+modalFreq = Sys.Frequencies(10,0.01);

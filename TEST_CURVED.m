@@ -42,3 +42,6 @@ n = 0:10;
 phi=  (IIn/(S*Radius^2)*(n.^2)  + 1).*(n.^2+1);
 psi = 4*IIn/(S*Radius^2)*(n.^2).*((n.^2-1).^2);
 wn =  sqrt(E/(2*rho*Radius^2).*phi.*(1 - sqrt(1 - psi./(phi.^2))));
+
+% -R <Ansys workbench script file>
+%http://www.mechanicsandmachines.com/?p=306

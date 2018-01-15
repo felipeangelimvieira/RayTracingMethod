@@ -17,6 +17,7 @@ classdef ELEMENT < handle
         IIn
         IOut
         L
+        J
         
         % Element's referential
         e1
@@ -37,7 +38,7 @@ classdef ELEMENT < handle
             obj.G = G;
             obj.IIn = IIn;
             obj.IOut = IOut;
-            
+            obj.J = IIn + IOut;
             obj.nodeNeg = nodeNeg;
             obj.nodeNeg.addElement(obj);
             obj.nodePos = nodePos;
@@ -70,7 +71,7 @@ classdef ELEMENT < handle
                   0                 1                1                0                  0      0;
                   0                 0                0                1                  1      0;
                   0                 0                0                0                  0      1;
-                  0                 0                0    i*obj.kfOut(w)       obj.kfOut(w)     0;
+                  0                 0                0    1i*obj.kfOut(w)       obj.kfOut(w)     0;
                   0    -1i*obj.kfIn(w)     -obj.kfIn(w)                0                 0      0;];
         end
         function X = PsiNeg(obj,w) 
@@ -78,14 +79,14 @@ classdef ELEMENT < handle
                   0                 1                  1                0                 0       0;
                   0                 0                  0                1                 1       0;
                   0                 0                  0                0                 0       1;
-                  0                 0                  0   -i*obj.kfOut(w)     -obj.kfOut(w)      0;
+                  0                 0                  0   -1i*obj.kfOut(w)     -obj.kfOut(w)      0;
                   0     1i*obj.kfIn(w)       obj.kfIn(w)                0                 0       0;];
         end
         function X = PhiPos(obj,w)
             X = [ -obj.E*obj.S*1i*obj.kt(w)                                 0                                 0                                    0                                  0                                          0;
                                          0  -obj.E*obj.IIn*1i*(obj.kfIn(w)^3)    obj.E*obj.IIn* (obj.kfIn(w)^3)                                    0                                  0                                          0;
                                          0                                  0                                 0  -obj.E*obj.IOut*1i*(obj.kfOut(w)^3)      obj.E*obj.IIn*(obj.kfOut(w)^3)                                         0;
-                                         0                                  0                                 0                                    0                                  0    -i*obj.G*(obj.IIn + obj.IOut)*obj.kt(w);
+                                         0                                  0                                 0                                    0                                  0    -1i*obj.G*(obj.J)*obj.kt(w);
                                          0                                  0                                 0      obj.E*obj.IOut*(obj.kfOut(w)^2)    -obj.E*obj.IIn* (obj.kfOut(w)^2)                                         0;
                                          0    -obj.E*obj.IIn*(obj.kfIn(w)^2)    obj.E*obj.IIn* (obj.kfIn(w)^2)                                    0                                   0                                          0;];
         end
@@ -93,7 +94,7 @@ classdef ELEMENT < handle
             X = [ obj.E*obj.S*1i*obj.kt(w)                                  0                                 0                                  0                                  0                                        0;
                                          0   obj.E*obj.IIn*1i*(obj.kfIn(w)^3)   -obj.E*obj.IIn* (obj.kfIn(w)^3)                                  0                                  0                                        0;
                                          0                                  0                                 0  obj.E*obj.IOut*1i*(obj.kfOut(w)^3)     -obj.E*obj.IIn*(obj.kfOut(w)^3)                                       0;
-                                         0                                  0                                 0                                  0                                  0    i*obj.G*(obj.IIn + obj.IOut)*obj.kt(w);
+                                         0                                  0                                 0                                  0                                  0    1i*obj.G*(obj.J)*obj.kt(w);
                                          0                                  0                                 0   obj.E*obj.IOut* (obj.kfOut(w)^2)     -obj.E*obj.IIn*(obj.kfOut(w)^2)                                       0;
                                          0    -obj.E*obj.IIn* (obj.kfIn(w)^2)    obj.E*obj.IIn* (obj.kfIn(w)^2)                                  0                                  0                                        0;];
         end
@@ -108,6 +109,7 @@ classdef ELEMENT < handle
             X = [inv([obj.e1 obj.e2 obj.e3])                           zeros(3);
                                     zeros(3)        inv([obj.e1 obj.e2 obj.e3])];
         end
+
         
         % Post-Treatment Methods
         function setElementPlane(obj,v)

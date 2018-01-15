@@ -29,7 +29,6 @@ classdef SYSTEM < handle
             
             obj.T = [];
             obj.D = [];
-            
             obj.Eff = [];
             obj.W0 = [];
             obj.W = [];
@@ -41,6 +40,9 @@ classdef SYSTEM < handle
         function addElement(obj,id,idNodeNeg,idNodePos,rho,S,E,G,IIn,IOut)
             obj.elementList = [obj.elementList  ELEMENT(id,obj.findNodeById(idNodeNeg),obj.findNodeById(idNodePos),rho,S,E,G,IIn,IOut)];
         end
+        function addCurvedElement(obj,id,idNodeNeg,idNodePos,rho,S,E,G,IIn,IOut,center,normal)
+            obj.elementList = [obj.elementList CURVEDELEMENT(id,obj.findNodeById(idNodeNeg),obj.findNodeById(idNodePos),rho,S,E,G,IIn,IOut,center,normal)];
+        end  
         function showStructure(obj)
             
             figure('Name','Structure Preview');
@@ -133,12 +135,22 @@ classdef SYSTEM < handle
             
             % Element's Effort Contribution
             for element = node.elementList
-                if node.isPos(element)
-                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PhiPos(w);
-                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PhiNeg(w);
+                if isa(element,'CURVEDELEMENT')
+                    if node.isPos(element)
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation(node.r)*element.PhiPos(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation(node.r)*element.PhiNeg(w);
+                    else
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation(node.r)*element.PhiNeg(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation(node.r)*element.PhiPos(w);
+                    end 
                 else
-                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation()*element.PhiNeg(w);
-                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PhiPos(w);
+                    if node.isPos(element)
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PhiPos(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PhiNeg(w);
+                    else
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation()*element.PhiNeg(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PhiPos(w);
+                    end 
                 end
                 j=j+1;      
             end
@@ -146,14 +158,23 @@ classdef SYSTEM < handle
             % Mass, Stiffness and Damping
             j = j-1;
             MKC = node.K - i*w*node.C - w*w*node.M;
-            if node.isPos(element)
-                MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) - MKC*element.Rotation()*element.PsiPos(w);
-                MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation()*element.PsiNeg(w);
+            if isa(element,'CURVEDELEMENT')
+                if node.isPos(element)
+                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) - MKC*element.Rotation(node.r)*element.PsiPos(w);
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation(node.r)*element.PsiNeg(w);
+                else
+                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) - MKC*element.Rotation(node.r)*element.PsiNeg(w);
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation(node.r)*element.PsiPos(w);
+                end
             else
-                MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) - MKC*element.Rotation()*element.PsiNeg(w);
-                MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation()*element.PsiPos(w);
+                if node.isPos(element)
+                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) - MKC*element.Rotation()*element.PsiPos(w);
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation()*element.PsiNeg(w);
+                else
+                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) - MKC*element.Rotation()*element.PsiNeg(w);
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation()*element.PsiPos(w);
+                end
             end
-            
             
             % Other Lines (Displacement Continuity):
             % Sub Diagonal
@@ -169,12 +190,23 @@ classdef SYSTEM < handle
                     break
                 end
                 
-                if node.isPos(element)
-                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiPos(w);
-                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiNeg(w);
+                if isa(element,'CURVEDELEMENT')
+                    if node.isPos(element)
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation(node.r)*element.PsiPos(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation(node.r)*element.PsiNeg(w);
+                    else
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation(node.r)*element.PsiNeg(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation(node.r)*element.PsiPos(w);
+                    end
+                    
                 else
-                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiNeg(w);
-                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiPos(w);
+                    if node.isPos(element)
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiPos(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiNeg(w);
+                    else
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiNeg(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiPos(w);
+                    end
                 end
                 i = i + 1;
                 j = j + 1;
@@ -185,14 +217,24 @@ classdef SYSTEM < handle
                 if n==1 % No Sub Diagonal (No equations)
                     break
                 end
-                
-                if node.isPos(element)
-                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation()*element.PsiPos(w);
-                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PsiNeg(w);
+                if isa(element,'CURVEDELEMENT')
+                    if node.isPos(element)
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation(node.r)*element.PsiPos(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation(node.r)*element.PsiNeg(w);
+                    else
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation(node.r)*element.PsiNeg(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation(node.r)*element.PsiPos(w);
+                    end
                 else
-                    MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation()*element.PsiNeg(w);
-                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PsiPos(w);
+                    if node.isPos(element)
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation()*element.PsiPos(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PsiNeg(w);
+                    else
+                        MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  =  element.Rotation()*element.PsiNeg(w);
+                        MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation()*element.PsiPos(w);
+                    end
                 end
+                
             end
             
             % Blocked Case
@@ -200,14 +242,26 @@ classdef SYSTEM < handle
             MOutBlocked = zeros(6*n);
             i = 0;
             j = 0;
+
             for element = node.elementList
-                if node.isPos(element)
-                    MInBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiPos(w);
-                    MOutBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiNeg(w);
+                if isa(element,'CURVEDELEMENT')
+                    if node.isPos(element)
+                        MInBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation(node.r)*element.PsiPos(w);
+                        MOutBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation(node.r)*element.PsiNeg(w);
+                    else
+                        MInBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation(node.r)*element.PsiNeg(w);
+                        MOutBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation(node.r)*element.PsiPos(w);
+                    end
                 else
-                    MInBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiNeg(w);
-                    MOutBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiPos(w);
+                    if node.isPos(element)
+                        MInBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiPos(w);
+                        MOutBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiNeg(w);
+                    else
+                        MInBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiNeg(w);
+                        MOutBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiPos(w);
+                    end
                 end
+                
                 i = i + 1;
                 j = j + 1;
             end
@@ -296,6 +350,36 @@ classdef SYSTEM < handle
             x = det(eye(12*n) - obj.T*obj.D);
         end
         
+        %Calculate n frequencies
+        function result = Frequencies(obj,n,step)
+            options = optimset('Display','off');
+            result = zeros(n,1);
+            freq = step;
+            r_before = obj.Determinant(freq);
+            warning('off','all');
+            dif_before = obj.Determinant(0) -  r_before;
+            warning('on','all');
+            R = [];
+            Freq = [];
+            calculated = 0;
+            while calculated < n
+                freq = freq + step;
+                Freq = [Freq freq];
+                r = obj.Determinant(2*pi*freq);
+                R = [R r];
+                dif_now = r - r_before;
+                if (dif_before<0 && dif_now>0)
+                    root = fsolve(@obj.Determinant,freq*2*pi,options);
+                    calculated = calculated + 1;
+                    result(calculated) = abs(root/(2*pi));
+                end
+                r_before = r;
+                dif_before = dif_now;
+            end
+            figure
+            plot(Freq,abs(R))
+            
+        end
     end
 end
 

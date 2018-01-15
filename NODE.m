@@ -37,7 +37,7 @@ classdef NODE < handle
             obj.id = id;
             obj.r = r;
             
-            % Mass, Stiffness and Damping set nules by default
+            % Mass, Stiffness and Damping set nulls by default
             obj.M = zeros(6);
             obj.K = zeros(6);
             obj.C = zeros(6);
