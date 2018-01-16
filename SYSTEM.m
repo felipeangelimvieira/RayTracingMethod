@@ -347,17 +347,17 @@ classdef SYSTEM < handle
             n = size(obj.elementList,2);
             obj.globalTransmission(w);
             obj.globalDispersion(w);
-            x = det(eye(12*n) - obj.T*obj.D);
+            x = abs(det(eye(12*n) - obj.T*obj.D));
         end
         
         %Calculate n frequencies
         function result = Frequencies(obj,n,step)
             options = optimset('Display','off');
             result = zeros(n,1);
-            freq = step;
-            r_before = obj.Determinant(freq);
+            freq = 2*step;
+            r_before = obj.Determinant(freq*2*pi);
             warning('off','all');
-            dif_before = obj.Determinant(0) -  r_before;
+            dif_before = obj.Determinant(step*2*pi) -  r_before;
             warning('on','all');
             R = [];
             Freq = [];
@@ -371,7 +371,7 @@ classdef SYSTEM < handle
                 if (dif_before<0 && dif_now>0)
                     root = fsolve(@obj.Determinant,freq*2*pi,options);
                     calculated = calculated + 1;
-                    result(calculated) = abs(root/(2*pi));
+                    result(calculated) = root/(2*pi);
                 end
                 r_before = r;
                 dif_before = dif_now;
