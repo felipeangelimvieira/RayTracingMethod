@@ -122,6 +122,77 @@ classdef ELEMENT < handle
             end
         end
         
+        function show(obj)
+            
+            X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
+            Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
+            Z = [obj.nodeNeg.r(3) obj.nodePos.r(3)];
+            
+            p = plot3(X,Y,Z);   
+            p.Color = 'k';
+            hold on;
+            
+            X = (obj.nodeNeg.r(1) + obj.nodePos.r(1))/2 ;
+            Y = (obj.nodeNeg.r(2) + obj.nodePos.r(2))/2 ;
+            Z = (obj.nodeNeg.r(3) + obj.nodePos.r(3))/2 ;
+            
+            U = obj.e1(1)*obj.L;
+            V = obj.e1(2)*obj.L;
+            W = obj.e1(3)*obj.L;
+            
+            p = quiver3(X,Y,Z,U,V,W,.15);
+            p.Color = 'red';
+            
+            U = obj.e2(1)*obj.L;
+            V = obj.e2(2)*obj.L;
+            W = obj.e2(3)*obj.L;
+            
+            p = quiver3(X,Y,Z,U,V,W,.15);
+            p.Color = 'blue';
+            
+            U = obj.e3(1)*obj.L;
+            V = obj.e3(2)*obj.L;
+            W = obj.e3(3)*obj.L;
+            
+            p = quiver3(X,Y,Z,U,V,W,.15);
+            p.Color = 'green';
+            
+        end
+        function showDeformated(obj,W,w,nDiv)
+            
+            X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
+            Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
+            Z = [obj.nodeNeg.r(3) obj.nodePos.r(3)];
+            
+            p = plot3(X,Y,Z);   
+            p.Color = 'k';
+            p.LineStyle = '--';
+            hold on;
+            
+            X = [];
+            Y = [];
+            Z = [];
+            
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            
+            for i=0:(nDiv-1)
+                
+                s = obj.e1 * obj.L * ( i / (nDiv - 1) );
+                u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
+                u = real(u(1:3));
+                
+                X = [X ( s(1) + u(1) + obj.nodeNeg.r(1))];
+                Y = [Y ( s(2) + u(2) + obj.nodeNeg.r(2))];
+                Z = [Z ( s(3) + u(3) + obj.nodeNeg.r(3))];
+                
+            end
+            
+            p = plot3(X,Y,Z);   
+            p.Color = 'k';
+            hold on;
+            
+        end
     end
     
 end

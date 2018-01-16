@@ -48,41 +48,34 @@ classdef SYSTEM < handle
             figure('Name','Structure Preview');
             
             for element = obj.elementList
-                v = [element.nodeNeg.r element.nodePos.r];
-                p = plot3(v(1,:),v(2,:),v(3,:));
-                
-                p.Color = 'k';
-                hold on;
-                
-                v = (element.nodeNeg.r + element.nodePos.r)/2 ;
-                u = element.e1*element.L;
-                p = quiver3(v(1),v(2),v(3),u(1),u(2),u(3),.15);
-                p.Color = 'red';
-                u = element.e2*element.L;
-                p = quiver3(v(1),v(2),v(3),u(1),u(2),u(3),.15);
-                p.Color = 'blue';
-                u = element.e3*element.L;
-                p = quiver3(v(1),v(2),v(3),u(1),u(2),u(3),.15);
-                p.Color = 'green';
-                
+                element.show();
             end
             
             for node = obj.nodeList
-                v = node.r;
-                p = plot3(v(1),v(2),v(3));
-                
-                p.Color = 'k';
-                p.Marker = 'o';
-                p.MarkerFaceColor = 'k';
-                hold on;
-                
-                text(v(1),v(2),v(3),char('  ' + string(node.id)));
-                hold on;
-                
+                node.show();
             end
             
             daspect([1 1 1]);
             hold off;
+        end
+        function showDeformatedStructure(obj,W,w,scale)
+            W = W*scale;
+            
+            i = 1;
+            j = 12;
+            for element = obj.elementList
+                element.showDeformated(W(i:j),w,20);
+                i = i+12;
+                j = j+12;
+            end
+            
+            for node = obj.nodeList
+                node.show();
+            end
+            
+            daspect([1 1 1]);
+            hold off;
+            
         end
         
         function x = findNodeById(obj,id)
@@ -349,36 +342,15 @@ classdef SYSTEM < handle
             obj.globalDispersion(w);
             x = abs(det(eye(12*n) - obj.T*obj.D));
         end
-        
-        %Calculate n frequencies
-        function result = Frequencies(obj,n,step)
-            options = optimset('Display','off');
-            result = zeros(n,1);
-            freq = 2*step;
-            r_before = obj.Determinant(freq*2*pi);
-            warning('off','all');
-            dif_before = obj.Determinant(step*2*pi) -  r_before;
-            warning('on','all');
-            R = [];
-            Freq = [];
-            calculated = 0;
-            while calculated < n
-                freq = freq + step;
-                Freq = [Freq freq];
-                r = obj.Determinant(2*pi*freq);
-                R = [R r];
-                dif_now = r - r_before;
-                if (dif_before<0 && dif_now>0)
-                    root = fsolve(@obj.Determinant,freq*2*pi,options);
-                    calculated = calculated + 1;
-                    result(calculated) = root/(2*pi);
-                end
-                r_before = r;
-                dif_before = dif_now;
-            end
-            figure
-            plot(Freq,abs(R))
-            
+        function X = associatedMode(obj,w)
+            n = size(obj.elementList,2);
+            obj.globalTransmission(w);
+            obj.globalDispersion(w);
+            [V,D] = eig(eye(12*n) - obj.T*obj.D);
+            D = diag(D);
+            [~,Min] = min(D);
+            X = V(:,Min);
+            X = X;
         end
     end
 end

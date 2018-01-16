@@ -92,9 +92,23 @@ classdef NODE < handle
             X = [inv([obj.e1 obj.e2 obj.e3])                           zeros(3);
                                     zeros(3)        inv([obj.e1 obj.e2 obj.e3])];
         end
+        
         % Post-Treatment Methods
         function ponctualMass(obj,m)
             obj.M(1:3,1:3) = m*eye(3);
+        end
+        
+        function show(obj)
+            
+            p = plot3(obj.r(1),obj.r(2),obj.r(3));   
+            p.Color = 'k';
+            p.Marker = 'o';
+            p.MarkerFaceColor = 'k';
+            hold on;
+                
+            text(obj.r(1),obj.r(2),obj.r(3),char('  ' + string(obj.id)));
+            hold on;
+                
         end
 
     end
