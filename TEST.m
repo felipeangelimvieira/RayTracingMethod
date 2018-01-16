@@ -7,14 +7,8 @@ Sys.addNode(1,[0;0;0]);
 Sys.addNode(2,[.5;0;0]);
 Sys.addNode(3,[1;0;0]);
 
-Sys.addNode(4,[1;0.5;0]);
-Sys.addNode(5,[1;1;0]);
-
-
-Sys.addElement(1,1,2,7.86e3,0.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6);
-Sys.addElement(2,2,3,7.86e3,0.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6);
-Sys.addElement(3,3,4,7.86e3,0.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6);
-Sys.addElement(4,4,5,7.86e3,0.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6);
+Sys.addElement(1,1,2,7.86e3,0.0314,210e9,(210e9)/2.6,7.854e-05,7.854e-05);
+Sys.addElement(2,2,3,7.86e3,0.0314,210e9,(210e9)/2.6,7.854e-05,7.854e-05);
 
 %Sys.addElement(1,1,2,1,1,1,1,1,1);
 %Sys.addElement(2,2,3,1,1,1,1,1,1);
@@ -35,8 +29,7 @@ C = Sys.findNodeById(3);
 
 A.DeltaFree = zeros(6);
 
-%%
-Sys.showStructure();
+
 
 %%
 Sys.InitializeMatrix();
