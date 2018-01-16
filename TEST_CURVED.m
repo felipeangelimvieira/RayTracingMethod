@@ -20,6 +20,7 @@ Sys.addCurvedElement(1,1,2,7.86e3,.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6,[0.5;0;0],
 Sys.addCurvedElement(2,2,1,7.86e3,.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6,[0.5;0;0],[0;0;1]);
 
 
+
 A = Sys.findNodeById(1);
 B = Sys.findNodeById(2);
 
