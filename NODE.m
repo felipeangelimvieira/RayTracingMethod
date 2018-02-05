@@ -23,9 +23,6 @@ classdef NODE < handle
         e2
         e3
         
-        % Calculation's optimisation
-        static
-        
     end
     
     methods
@@ -50,9 +47,6 @@ classdef NODE < handle
             obj.e1 = [1;0;0];
             obj.e2 = [0;1;0];
             obj.e3 = [0;0;1];
-            
-            % Dynamic transmission behaviour supposed at begining
-            obj.static = false;
             
         end
         function addElement(obj,element)
@@ -99,6 +93,10 @@ classdef NODE < handle
         end
         
         function show(obj)
+            
+            if size(obj.elementList,1)==0
+                return
+            end
             
             p = plot3(obj.r(1),obj.r(2),obj.r(3));   
             p.Color = 'k';

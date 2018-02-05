@@ -29,16 +29,17 @@ classdef ELEMENT < handle
     methods
         
         % Definition methods
-        function obj =  ELEMENT(id,nodeNeg,nodePos,rho,S,E,G,IIn,IOut)
+        function obj =  ELEMENT(id,nodeNeg,nodePos,nodeRef,material,section)
             
             obj.id = id;
-            obj.rho = rho;
-            obj.S = S;
-            obj.E = E;
-            obj.G = G;
-            obj.IIn = IIn;
-            obj.IOut = IOut;
-            obj.J = IIn + IOut;
+            obj.rho = material.Density;
+            obj.S = section.Area;
+            obj.E = material.YoungModule;
+            obj.G = ( material.YoungModule / ( 2 * ( 1 + material.PoissonCoef) ) );
+            obj.IIn = section.SecondMomentIn;
+            obj.IOut = section.SecondMomentOut;
+            obj.J =  section.TorsionMoment;
+            
             obj.nodeNeg = nodeNeg;
             obj.nodeNeg.addElement(obj);
             obj.nodePos = nodePos;
@@ -46,8 +47,11 @@ classdef ELEMENT < handle
             
             obj.L = norm( nodePos.r - nodeNeg.r );
             obj.e1 = ( nodePos.r - nodeNeg.r ) / obj.L;
-            obj.e2 = [0;0;0];
-            obj.e3 = [0;0;0];
+            
+            obj.e2 = ( nodeRef.r - nodeNeg.r );
+            obj.e2 = obj.e2 - (obj.e2'*obj.e1)*obj.e1;
+            obj.e2 = obj.e2/norm(obj.e2);
+            obj.e3 = cross(obj.e1,obj.e2);
             
         end
         
@@ -110,18 +114,6 @@ classdef ELEMENT < handle
                                     zeros(3)        inv([obj.e1 obj.e2 obj.e3])];
         end
 
-        
-        % Post-Treatment Methods
-        function setElementPlane(obj,v)
-            if ( v' * obj.e1 ) < .05 
-                obj.e3 = v - ( v' * obj.e1 ) * obj.e1;
-                obj.e3 = obj.e3 / norm(obj.e3);
-                obj.e2 = cross(obj.e3,obj.e1);
-            else
-                error('Input error: Structure Plane not coherent with elements direction')
-            end
-        end
-        
         function show(obj)
             
             X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
