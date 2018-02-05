@@ -110,8 +110,8 @@ classdef ELEMENT < handle
         
         % Rotation Operator
         function X = Rotation(obj)
-            X = [inv([obj.e1 obj.e2 obj.e3])                           zeros(3);
-                                    zeros(3)        inv([obj.e1 obj.e2 obj.e3])];
+            X = [([obj.e1 obj.e2 obj.e3])                         zeros(3);
+                                 zeros(3)        ([obj.e1 obj.e2 obj.e3])];
         end
 
         function show(obj)
