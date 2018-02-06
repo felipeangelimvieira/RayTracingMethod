@@ -40,7 +40,7 @@ classdef NODE < handle
             obj.C = zeros(6);
             
             % Element's List empty by default
-            obj.elementList = [];
+            obj.elementList = {};
             
             % Node initialised as free
             obj.DeltaFree = eye(6);
@@ -50,7 +50,7 @@ classdef NODE < handle
             
         end
         function addElement(obj,element)
-            obj.elementList = [obj.elementList element];
+            obj.elementList = [obj.elementList {element}];
         end
         
         % Main Methods

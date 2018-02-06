@@ -23,13 +23,12 @@ classdef SYSTEM < handle
     
     methods
         
-        % Definition Methods
         function obj = SYSTEM()
             
-            obj.elementList = [];
-            obj.nodeList = [];
-            obj.materialList = [];
-            obj.sectionList = [];
+            obj.elementList = {};
+            obj.nodeList = {};
+            obj.materialList = {};
+            obj.sectionList = {};
             
             obj.T = [];
             obj.D = [];
@@ -38,28 +37,55 @@ classdef SYSTEM < handle
             obj.W = [];
             
         end
+        
         function addNode(obj,id,r)
-           obj.nodeList = [obj.nodeList  NODE(id,r)];
+            for node = obj.nodeList
+                if node.id == id
+                    error("Node's id conflict");
+                end
+            end
+            obj.nodeList = [obj.nodeList  NODE(id,r)];
         end
         function addElement(obj,id,idNodeNeg,idNodePos,idNodeRef,idMaterial,idSection)
-            nodeNeg  = findNodeById(idNodeNeg);
-            nodePos  = findNodeById(idNodePos);
-            nodeRef  = findNodeById(idNodeRef);
-            material = findMaterialById(idMaterial);
-            section  = findSectionById(idSection);
-            obj.elementList = [obj.elementList  ELEMENT(id,nodeNeg,nodePos,nodeRef,material,section)];
+            if idNodeNeg==idNodePos|idNodeRef==idNodePos
+               error("Elements must be defined by three different nodes");
+            end
+            for element = obj.elementList
+                element = element{1};
+                if element.id == id
+                    error("Elements' id conflict");
+                end
+            end
+            nodeNeg  = obj.findNodeById(idNodeNeg);
+            nodePos  = obj.findNodeById(idNodePos);
+            nodeRef  = obj.findNodeById(idNodeRef);
+            material = obj.findMaterialById(idMaterial);
+            section  = obj.findSectionById(idSection);
+            obj.elementList = [obj.elementList  {ELEMENT(id,nodeNeg,nodePos,nodeRef,material,section)}];
         end
         function addMaterial(obj,id,Young,Poisson,Density)
+            for material = obj.materialList
+                if material.id == id
+                    error("Material's id conflict");
+                end
+            end
             obj.materialList = [obj.elementList  MATERIAL(id,Young,Poisson,Density)];
         end
-        function addSection(obj,id,A,IIn,IOut)
-           obj.sectionList = [obj.sectionList SECTION(id,A,IIn,IOut)]; 
+        function addSection(obj,id,A,IIn,IOut,J)
+            for section = obj.sectionList
+                if section.id == id
+                    error("Section's id conflict");
+                end
+            end
+            obj.sectionList = [obj.sectionList SECTION(id,A,IIn,IOut,J)]; 
         end
+        
         function showStructure(obj)
             
             figure('Name','Structure Preview');
             
             for element = obj.elementList
+                element = element{1};
                 element.show();
             end
             
@@ -76,6 +102,7 @@ classdef SYSTEM < handle
             i = 1;
             j = 12;
             for element = obj.elementList
+                element = element{1};
                 element.showDeformated(W(i:j),w,20);
                 i = i+12;
                 j = j+12;
@@ -99,6 +126,16 @@ classdef SYSTEM < handle
             end
             error('No node with such id');
         end
+        function x = findElementById(obj,id)
+            for element = obj.elementList
+                element = element{1};
+                if element.id == id
+                    x = element;
+                    return
+                end
+            end
+            error('No element with such id');
+        end
         function x = findMaterialById(obj,id)
             for material = obj.materialList
                 if material.id == id
@@ -116,15 +153,6 @@ classdef SYSTEM < handle
                 end
             end
             error('No node with such id');
-        end
-        function x = findElementById(obj,id)
-            for element = obj.elementList
-                if element.id == id
-                    x = element;
-                    return
-                end
-            end
-            error('No element with such id');
         end
         
         function InitializeMatrix(obj)
@@ -151,6 +179,7 @@ classdef SYSTEM < handle
             
             % Element's Effort Contribution
             for element = node.elementList
+                element = element{1};
                 if node.isPos(element)
                     MInFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PhiPos(w);
                     MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PhiNeg(w);
@@ -178,6 +207,7 @@ classdef SYSTEM < handle
             j = 0;
             i = 1;
             for element = node.elementList
+                element = element{1};
                 
                 if n==1 % No Sub Diagonal (No equations)
                     break
@@ -222,6 +252,7 @@ classdef SYSTEM < handle
             j = 0;
 
             for element = node.elementList
+                element = element{1};
                 if node.isPos(element)
                     MInBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) )  = -element.Rotation()*element.PsiPos(w);
                     MOutBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation()*element.PsiNeg(w);
@@ -252,10 +283,12 @@ classdef SYSTEM < handle
             
             iLocal = 0; 
             for elementI = node.elementList % Tn is broken in Lines
+                elementI = elementI{1};
                 
                 % Search for corresponding T line
                 i = 0;
                 for element = obj.elementList 
+                    element = element{1};
                     if element == elementI
                         break
                     end
@@ -271,10 +304,12 @@ classdef SYSTEM < handle
                 
                 jLocal = 0;
                 for elementJ = node.elementList % The Line is broken into its blocks   
+                    elementJ = elementJ{1};
                     
                     % Search for corresponding T line
                     j = 0;
                     for element = obj.elementList 
+                        element = element{1};
                         if element == elementJ
                             break
                         end
@@ -307,6 +342,7 @@ classdef SYSTEM < handle
         function globalDispersion(obj,w)
             i = 0;
             for element = obj.elementList
+                element = element{1};
                 obj.D( 1+6*i : 6+6*i , 1+6*i : 6+6*i ) = element.Delta(w,element.L);
                 i = i + 1;
                 obj.D( 1+6*i : 6+6*i , 1+6*i : 6+6*i ) = element.Delta(w,element.L);
@@ -329,8 +365,7 @@ classdef SYSTEM < handle
             X = V(:,Min);
             X = X;
         end
+        
     end
     
 end
-
-    
