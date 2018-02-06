@@ -353,7 +353,8 @@ classdef SYSTEM < handle
             n = size(obj.elementList,2);
             obj.globalTransmission(w);
             obj.globalDispersion(w);
-            x = abs(det(eye(12*n) - obj.T*obj.D));
+            x = eig((eye(12*n) - obj.T*obj.D));
+            x = min(abs(x));
         end
         function X = associatedMode(obj,w)
             n = size(obj.elementList,2);
