@@ -45,13 +45,13 @@ Sys.addElement( 34 , 12 , 9 , 100 , 1 , 1 );
 
 %Limit Conditions
 A = Sys.findNodeById(1);
-A.DeltaFree = 0;
+A.DeltaFree = zeros(6);
 B = Sys.findNodeById(2);
-B.DeltaFree = 0;
+B.DeltaFree = zeros(6);
 C = Sys.findNodeById(3);
-C.DeltaFree = 0;
+C.DeltaFree = zeros(6);
 D = Sys.findNodeById(4);
-D.DeltaFree = 0;
+D.DeltaFree = zeros(6);
 
 %Solving
 Sys.InitializeMatrix();
@@ -61,7 +61,7 @@ Sys.InitializeMatrix();
 figure();
 F = [];
 Y = [];
-for f = 0.01:.01:1
+for f = 0.01:.01:3
     Y = [Y Sys.Determinant(f*2*pi)];
     F = [F f];
 end
