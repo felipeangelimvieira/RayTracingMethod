@@ -5,19 +5,25 @@ import SYSTEM
 Sys = SYSTEM();
 
 Sys.addNode(1,[0;0;0]);
+%Sys.addNode(2,[0.5;0.5;0]);
 Sys.addNode(2,[1;0;0]);
+%Sys.addNode(4,[0.5;-0.5;0]);
 
+Radius = 0.5;
+R = 0.01;
 rho = 7.86e3;
-S = 0.01;
+S = pi*R^2;
 E = 210e9;
 G =(210e9)/2.6;
-IIn =  8.3e-6;
-IOut = 8.3e-6;
-Radius = 0.5;
+IIn =  pi/4*R^4;
+IOut =  pi/4*R^4;
 
 
-Sys.addCurvedElement(1,1,2,7.86e3,.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6,[0.5;0;0],[0;0;1]);
-Sys.addCurvedElement(2,2,1,7.86e3,.01,210e9,(210e9)/2.6,8.3e-6,8.3e-6,[0.5;0;0],[0;0;1]);
+
+Sys.addCurvedElement(1,1,2,rho,S,E,G,IIn,IOut,[0.5;0;0],[0;0;1]);
+%Sys.addCurvedElement(2,2,3,rho,S,E,G,IIn,IOut,[0.5;0;0],[0;0;1]);
+Sys.addCurvedElement(2,2,1,rho,S,E,G,IIn,IOut,[0.5;0;0],[0;0;1]);
+%Sys.addCurvedElement(2,4,1,rho,S,E,G,IIn,IOut,[0.5;0;0],[0;0;1]);
 
 
 
@@ -31,18 +37,9 @@ Sys.InitializeMatrix();
 figure;
 R = [];
 Freq = [];
-for freq = 10:20:3000
+for freq = 40:0.001:45
     r = Sys.Determinant(2*pi*freq);
     R = [R r];
     Freq = [Freq freq];
 end
 plot(Freq,abs(R));
-
-n = 0:10;
-
-phi=  (IIn/(S*Radius^2)*(n.^2)  + 1).*(n.^2+1);
-psi = 4*IIn/(S*Radius^2)*(n.^2).*((n.^2-1).^2);
-wn =  sqrt(E/(2*rho*Radius^2).*phi.*(1 - sqrt(1 - psi./(phi.^2))));
-
-% -R <Ansys workbench script file>
-%http://www.mechanicsandmachines.com/?p=306

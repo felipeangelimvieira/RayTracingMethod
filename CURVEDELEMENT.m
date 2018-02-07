@@ -21,6 +21,7 @@ classdef CURVEDELEMENT < handle
         J
         IIn
         IOut
+        Izz
         L
         
         
@@ -37,6 +38,8 @@ classdef CURVEDELEMENT < handle
             obj.J = IIn + IOut; %verificar
             obj.IIn = IIn;
             obj.IOut = IOut;
+            obj.Izz = IIn + IOut;
+            obj.J = obj.Izz;
             obj.plane = plane/norm(plane);
             
             obj.nodeNeg = nodeNeg;
@@ -60,64 +63,104 @@ classdef CURVEDELEMENT < handle
         
         %Coupling
         function xi = Xi(obj,w,ind)
-            kii = [obj.kt(w);obj.kfIn(w);-1i*obj.kfIn(w)];
-            xi = [0;0;0];
-            for j = 1:size(kii)
-                k = kii(j);
-                xi(j) = 1i*obj.E*obj.R*k*(obj.IIn*k^2 + obj.S)/(obj.rho*obj.R^2*obj.S*w^2 - (obj.E*obj.IIn*obj.R^2*k^4 + obj.E*obj.S));
-            end
-            xi = xi(ind);
-
+            kii = obj.ki(w,ind);
+            xi = 1i*obj.E*obj.R*kii*(obj.IOut*kii^2 + obj.S)/(obj.rho*obj.R^2*obj.S*w^2 - (obj.E*obj.IOut*obj.R^2*kii^4 + obj.E*obj.S));
         end
         function xo = Xo(obj,w,ind)
-            koi = [obj.kr(w);obj.kfOut(w);-1i*obj.kfOut(w)]; %direction 3 out of plane
-            xo = [0;0;0];
-            for j = 1:size(koi)
-                k = koi(j);
-                xo(j) = (k*obj.R^2*(obj.G*obj.J + obj.E*obj.IOut))/(obj.rho*obj.R^2*obj.S*w^2 - (obj.E*obj.IOut*obj.R^2*k^4 + obj.G*obj.J*k^2));
-            end
-            xo = xo(ind);
+            koi = obj.ko(w,ind);
+            xo = (koi*obj.R^2*(obj.G*obj.J + obj.E*obj.IIn))/(obj.rho*obj.R^2*obj.S*w^2 - (obj.E*obj.IIn*obj.R^2*koi^4 + obj.G*obj.J*koi^2));
         end
         
         function X = PsiPos(obj,w)
-            X = [ 1                 1/obj.Xi(w,2)                1/obj.Xi(w,3)                0                  0      0;
-                  obj.Xi(w,1)                 1                1                0                  0      0;
-                  0                 0                0                1                  1      obj.Xo(w,1) ;
-                  0                 0                0                1/obj.Xo(w,2)                  1/obj.Xo(w,3)      1;
-                  0                 0                0    1i*obj.kfOut(w)       obj.kfOut(w)     obj.kr(w)*1i*obj.Xo(w,1);
-                  -obj.kr(w)*1i*obj.Xi(w,1)    -1i*obj.kfIn(w)     -obj.kfIn(w)                0                 0      0;];
-             X(isnan(X)) = 0;
-             X
+            ki1 = obj.ki(w,1);
+            ki2 = obj.ki(w,2);
+            ki3 = obj.ki(w,3);
+            ko1 = obj.ko(w,1);
+            ko2 = obj.ko(w,2);
+            ko3 = obj.ko(w,3);
+            Xi1 = obj.Xi(w,1);
+            Xi2 = obj.Xi(w,2);
+            Xi3 = obj.Xi(w,3);
+            Xo1 = obj.Xo(w,1);
+            Xo2 = obj.Xo(w,2);
+            Xo3 = obj.Xo(w,3);
+            
+            X = [ 1                 1/Xi2                1/Xi3                0                  0      0;
+                  Xi1                 1                1                0                  0      0;
+                  0                 0                0                1                  1      Xo1 ;
+                  0                 0                0                1/Xo2                  1/Xo3      1;
+                  0                 0                0    1i*ko2      1i*ko3     1i*ko1*Xo1;
+                  -1i*ki1*Xi1    -1i*ki2     -1i*ki3                0                 0      0;];
+             
+           X(isnan(X)) = 0;
         end
         function X = PsiNeg(obj,w) 
-            X = [ 1                 -1/obj.Xi(w,2)                -1/obj.Xi(w,3)                0                  0      0;
-                  -obj.Xi(w,1)                 1                1                0                  0      0;
-                  0                 0                0                1                  1      -obj.Xo(w,1) ;
-                  0                 0                0                -1/obj.Xo(w,2)                  -1/obj.Xo(w,3)      1;
-                  0                 0                0    -1i*obj.kfOut(w)       -obj.kfOut(w)     obj.kr(w)*1i*obj.Xo(w,1);
-                  -obj.kr(w)*1i*obj.Xi(w,1)    1i*obj.kfIn(w)     obj.kfIn(w)                0                 0      0;];
+            ki1 = obj.ki(w,1);
+            ki2 = obj.ki(w,2);
+            ki3 = obj.ki(w,3);
+            ko1 = obj.ko(w,1);
+            ko2 = obj.ko(w,2);
+            ko3 = obj.ko(w,3);
+            Xi1 = obj.Xi(w,1);
+            Xi2 = obj.Xi(w,2);
+            Xi3 = obj.Xi(w,3);
+            Xo1 = obj.Xo(w,1);
+            Xo2 = obj.Xo(w,2);
+            Xo3 = obj.Xo(w,3);
+            
+            X = [ 1                 -1/Xi2                -1/Xi3                0                  0      0;
+                  -Xi1                 1                1                0                  0      0;
+                  0                 0                0                1                  1      -Xo1 ;
+                  0                 0                0                -1/Xo2                  -1/Xo3      1;
+                  0                 0                0    -1i*ko2      -1i*ko3     1i*ko1*Xo1;
+                  -1i*ki1*Xi1    +1i*ki2     +1i*ki3                0                 0      0;];
+             
+           X(isnan(X)) = 0;
         end
         function X = PhiPos(obj,w)
-            A1 = -obj.E*obj.S*(1i*obj.kt(w) + obj.Xi(w,1)/obj.R);
-            B1 = -obj.E*obj.S*(1i*obj.kfIn(w)/obj.Xi(w,2)+1/obj.R);
-            C1 = -obj.E*obj.S*(obj.kfIn(w)/obj.Xi(w,3)+1/obj.R);
-            A2 = obj.E*obj.IIn*(-obj.kt(w)^3*obj.Xi(w,1) + obj.kt(w)^2/obj.R); 
-            B2 = -obj.E*obj.IIn*(1i*obj.kfIn(w)^3 - obj.kfIn(w)^2/(obj.R*obj.Xi(w,2)));
-            C2 = -obj.E*obj.IIn*(-obj.kfIn(w)^3 + obj.kfIn(w)^2/(obj.R*obj.Xi(w,3)));  
-            D3 = obj.E*obj.IOut*(-1i*obj.kfOut(w)^3 - 1i*obj.kfOut(w)/(obj.R*obj.Xo(w,2))) + obj.G*obj.J*(-1i*obj.kfOut(w)/(obj.R^2) - 1i*obj.kfOut(w)/(obj.R*obj.Xo(w,2)));
+            E = obj.E;
+            IIn = obj.IIn;
+            IOut = obj.IOut;  %#ok<*PROPLC>
+            ki1 = obj.ki(w,1);
+            ki2 = obj.ki(w,2);
+            ki3 = obj.ki(w,3);
+            ko1 = obj.ko(w,1);
+            ko2 = obj.ko(w,2);
+            ko3 = obj.ko(w,3);
+            Xi1 = obj.Xi(w,1);
+            Xi2 = obj.Xi(w,2);
+            Xi3 = obj.Xi(w,3);
+            Xo1 = obj.Xo(w,1);
+            Xo2 = obj.Xo(w,2);
+            Xo3 = obj.Xo(w,3);
+            S = obj.S;
+            R = obj.R;
+            G = obj.G;
+            J = obj.J;
             
-            E3 = obj.E*obj.IOut*(obj.kfOut(w)^3 - obj.kfOut(w)/(obj.R*obj.Xo(w,3))) + obj.G*obj.J*(-obj.kfOut(w)/(obj.R^2) - obj.kfOut(w)/(obj.R*obj.Xo(w,3)));
-            F3 = obj.E*obj.IOut*(-1i*obj.kr(w)/obj.R - 1i*obj.kr(w)^3*obj.Xo(w,1)) + obj.G*obj.J*(-1i*obj.kr(w)/(obj.R) - 1i*obj.kr(w)*obj.Xo(w,1)/(obj.R^2));
+            A1 = -E*S*(1i*ki1 + Xi1/R);
+            B1 = -E*S*(1i*ki2/Xi2 + 1/R);
+            C1 = -E*S*(1i*ki3/Xi3 + 1/R);
+            
+            A2 = E*IOut*(-1i*ki1^3*Xi1 + ki1^2/R);
+            B2 = + E*IOut*(ki2^2/(R*Xi2) - 1i*ki2^3);
+            C2 = + E*IOut*(ki3^2/(R*Xi3) - 1i*ki3^3);
+            
+            D4 = G*J*(-1i*ko2/Xo2 - 1i*ko2/R);
+            E4 = G*J*(-1i*ko3/Xo3 - 1i*ko3/R);
+            F4 = G*J*(-1i*ko1 -1i*ko1*Xo1/R);
+            
+            D3 = E*IIn*(-1i*ko2^3 - 1i*ko2/(R*Xo2)) + D4/R;
+            E3 = E*IIn*(-1i*ko3^3 - 1i*ko3/(R*Xo3)) + E4/R;
+            F3 = E*IIn*(-1i*ko1^3*Xo1 -1i*ko1/R) + F4/R;            
  
-            D4 = obj.G*obj.J*(-1i*obj.kfOut(w)/obj.R - 1i*obj.kfOut(w)/obj.Xo(w,2));
-            E4 = obj.G*obj.J*(-obj.kfOut(w)/obj.R - obj.kfOut(w)/obj.Xo(w,3));
-            F4 = obj.G*obj.J*(-1i*obj.kr(w) - 1i*obj.kr(w)*obj.Xo(w,1)/obj.R);
-            D5 = obj.E*obj.IOut*(1/(obj.R*obj.Xo(w,2)) + obj.kfOut(w)^2);
-            E5 = obj.E*obj.IOut*(1/(obj.R*obj.Xo(w,3)) - obj.kfOut(w)^2);
-            F5 = obj.E*obj.IOut*(1/obj.R + obj.Xo(w,1)*(obj.kr(w)^2));
-            A6 = -obj.E*obj.IIn*(obj.Xi(w,1)*obj.kt(w)^2 + 1i*obj.kt(w)/obj.R);
-            B6 = -obj.E*obj.IIn*(obj.kfIn(w)^2 + 1i*obj.kfIn(w)/(obj.R*obj.Xi(w,2)));
-            C6 = obj.E*obj.IIn*(obj.kfIn(w)^2 - obj.kfIn(w)/(obj.R*obj.Xi(w,3)));
+            D5 = E*IIn*(1/(R*Xo2) + ko2^2);
+            E5 = E*IIn*(1/(R*Xo3) + ko3^2);
+            F5 = E*IIn*(1/R + Xo1*(ko1^2));
+            
+            A6 = -E*IOut*(Xi1*ki1^2 + 1i*ki1/R);
+            B6 = -E*IOut*(ki2^2 + 1i*ki2/(R*Xi2));
+            C6 = -E*IOut*(ki3^2 + 1i*ki3/(R*Xi3));
            
             
             X = [ A1 B1 C1 0 0 0;
@@ -129,26 +172,50 @@ classdef CURVEDELEMENT < handle
         end
         function X = PhiNeg(obj,w)
             
-            A1 = +obj.E*obj.S*(1i*obj.kt(w) + obj.Xi(w,1)/obj.R);
-            B1 = -obj.E*obj.S*(1i*obj.kfIn(w)/obj.Xi(w,2)+1/obj.R);
-            C1 = -obj.E*obj.S*(obj.kfIn(w)/obj.Xi(w,3)+1/obj.R);
-            A2 = obj.E*obj.IIn*(-obj.kt(w)^3*obj.Xi(w,1) + obj.kt(w)^2/obj.R); 
-            B2 = +obj.E*obj.IIn*(1i*obj.kfIn(w)^3 - obj.kfIn(w)^2/(obj.R*obj.Xi(w,2)));
-            C2 = +obj.E*obj.IIn*(-obj.kfIn(w)^3 + obj.kfIn(w)^2/(obj.R*obj.Xi(w,3)));
-            D3 = obj.E*obj.IOut*(1i*obj.kfOut(w)^3 - 1i*obj.kfOut(w)/(obj.R*obj.Xo(w,2))) + obj.G*obj.J*(1i*obj.kfOut(w)/(obj.R^2) - 1i*obj.kfOut(w)/(obj.R*obj.Xo(w,2)));
+            E = obj.E;
+            IIn = obj.IIn;
+            IOut = obj.IOut;  %#ok<*PROPLC>
+            ki1 = obj.ki(w,1);
+            ki2 = obj.ki(w,2);
+            ki3 = obj.ki(w,3);
+            ko1 = obj.ko(w,1);
+            ko2 = obj.ko(w,2);
+            ko3 = obj.ko(w,3);
+            Xi1 = obj.Xi(w,1);
+            Xi2 = obj.Xi(w,2);
+            Xi3 = obj.Xi(w,3);
+            Xo1 = obj.Xo(w,1);
+            Xo2 = obj.Xo(w,2);
+            Xo3 = obj.Xo(w,3);
+            S = obj.S;
+            R = obj.R;
+            G = obj.G;
+            J = obj.J;
             
-            E3 = obj.E*obj.IOut*(-obj.kfOut(w)^3 - obj.kfOut(w)/(obj.R*obj.Xo(w,3))) + obj.G*obj.J*((obj.kfOut(w)/(obj.R^2) - obj.kfOut(w)/(obj.R*obj.Xo(w,3))));
-            F3 = obj.E*obj.IOut*(1i*obj.kr(w)/obj.R - 1i*obj.kr(w)^3*obj.Xo(w,1)) + obj.G*obj.J*(1i*obj.kr(w)/(obj.R) - 1i*obj.kr(w)*obj.Xo(w,1)/(obj.R^2));
-            D4 = obj.G*obj.J*(1i*obj.kfOut(w)/obj.R - 1i*obj.kfOut(w)/obj.Xo(w,2));
-            E4 = obj.G*obj.J*(obj.kfOut(w)/obj.R - obj.kfOut(w)/obj.Xo(w,3));
-            F4 = obj.G*obj.J*(1i*obj.kr(w) - 1i*obj.kr(w)*obj.Xo(w,1)/obj.R);
-            D5 = obj.E*obj.IOut*(-1/(obj.R*obj.Xo(w,2)) + obj.kfOut(w)^2);
-            E5 = obj.E*obj.IOut*(-1/(obj.R*obj.Xo(w,3)) - obj.kfOut(w)^2);
-            F5 = obj.E*obj.IOut*(1/obj.R - obj.Xo(w,1)*(obj.kr(w)^2));
-            A6 = obj.E*obj.IIn*(obj.Xi(w,1)*obj.kt(w)^2 + 1i*obj.kt(w)/obj.R);
-            B6 = -obj.E*obj.IIn*(obj.kfIn(w)^2 + 1i*obj.kfIn(w)/(obj.R*obj.Xi(w,2)));
-            C6 = obj.E*obj.IIn*(obj.kfIn(w)^2 - obj.kfIn(w)/(obj.R*obj.Xi(w,3)));
-           
+            A1 = + E*S*(1i*ki1 + Xi1/R);
+            B1 = - E*S*(1i*ki2/Xi2 + 1/R); %same for phiNeg and phiPos
+            C1 = - E*S*(1i*ki3/Xi3 + 1/R); %same for phiNeg and phiPos
+            
+            A2 = E*IOut*(-1i*ki1^3*Xi1 + ki1^2/R); %same for phiNeg and phiPos
+            B2 = - E*IOut*(ki2^2/(R*Xi2) - 1i*ki2^3);
+            C2 = - E*IOut*(ki3^2/(R*Xi3) - 1i*ki3^3);
+            
+            D4 = G*J*(-1i*ko2/Xo2 + 1i*ko2/R);
+            E4 = G*J*(-1i*ko3/Xo3 + 1i*ko3/R);
+            F4 = G*J*(+1i*ko1 -1i*ko1*Xo1/R);
+            
+            D3 = E*IIn*(+1i*ko2^3 - 1i*ko2/(R*Xo2)) + D4/R;
+            E3 = E*IIn*(+1i*ko3^3 - 1i*ko3/(R*Xo3)) + E4/R;
+            F3 = E*IIn*(-1i*ko1^3*Xo1 + 1i*ko1/R) + F4/R;            
+ 
+            D5 = E*IIn*( - 1/(R*Xo2) + ko2^2);
+            E5 = E*IIn*( - 1/(R*Xo3) + ko3^2);
+            F5 = E*IIn*(1/R - Xo1*(ko1^2));
+            
+            A6 = + E*IOut*(Xi1*ki1^2 + 1i*ki1/R);
+            B6 = - E*IOut*(ki2^2 + 1i*ki2/(R*Xi2)); %same for phiNeg and phiPos
+            C6 = - E*IOut*(ki3^2 + 1i*ki3/(R*Xi3)); %same for phiNeg and phiPos
+                      
             
             X = [ A1 B1 C1 0 0 0;
                 A2 B2 C2 0 0 0;
@@ -176,18 +243,67 @@ classdef CURVEDELEMENT < handle
         end
         
          % Wave Numbers
-        function x = kt(obj,w)
-            x = w * sqrt( obj.rho / obj.E ) ;
+        function x = ki(obj,w,id)
+        E = obj.E;
+        IOut = obj.IOut;
+        R = obj.R;
+        rho = obj.rho;
+        S = obj.S;
+            
+        a3 = 1;
+        a2 = - E*IOut*R^2*(R^2*rho*w^2 + 2*E)/(E^2*IOut*R^4);
+        a1 = - E*(rho*R^2*w^2*(S*R^2 + IOut) - E*IOut)/(E^2*IOut*R^4);
+        a0 = S*rho*R^2*w^2*(rho*R^2*w^2 - E)/(E^2*IOut*R^4);
+
+        r = (9*a2*a1 - 27*a0 - 2*a2^3)/54;
+        q = (3*a1 - a2^2)/9;
+
+        s1 = (r + sqrt(q^3 + r^2))^(1/3);
+        s2 = (r - sqrt(q^3 + r^2))^(1/3);
+
+        z1 = -1/3*a2 + s1 + s2;
+        z2 = -1/3*a2 - 1/2*(s1 + s2) + 1i*sqrt(3)/2*(s1 - s2);
+        z3 = -1/3*a2 - 1/2*(s1 + s2) - 1i*sqrt(3)/2*(s1 - s2);
+        z = [z3; z1; z2]; %ki1, ki2 and ki3 respectively
+        z = sqrt(z);
+        
+        x = z(id);
+        if imag(x)>0
+            x = -x;
         end
-        function x = kr(obj,w)
-            x = w * sqrt( obj.rho / obj.G ) ;
         end
-        function x = kfIn(obj,w)
-            x = sqrt( w * sqrt( (obj.rho*obj.S)/(obj.E*obj.IIn) ) ) ;
+        function x = ko(obj,w,id)
+        E = obj.E;
+        IIn = obj.IIn; %Ix in Chouvion's Thesis
+        Izz = obj.Izz;
+        G = obj.G;
+        J =  obj.J;
+        R = obj.R;
+        rho = obj.rho;
+        S = obj.S;
+            
+        a3 = 1;
+        a2 = -E*IIn*R^2*(R^2*rho*w^2*Izz + 2*G*J)/(E*IIn*R^4*G*J);
+        a1 = - G*J*(rho*R^2*w^2*(S*R^2 + Izz) - E*IIn)/(E*IIn*R^4*G*J);
+        a0 = S*rho*R^2*w^2*(rho*R^2*w^2*Izz - E*IIn)/(E*IIn*R^4*G*J);
+
+        r = (9*a2*a1 - 27*a0 - 2*a2^3)/54;
+        q = (3*a1 - a2^2)/9;
+
+        s1 = (r + sqrt(q^3 + r^2))^(1/3);
+        s2 = (r - sqrt(q^3 + r^2))^(1/3);
+
+        z1 = -1/3*a2 + s1 + s2;
+        z2 = -1/3*a2 - 1/2*(s1 + s2) + 1i*sqrt(3)/2*(s1 - s2);
+        z3 = -1/3*a2 - 1/2*(s1 + s2) - 1i*sqrt(3)/2*(s1 - s2);
+        z = [z3; z1; z2]; %ki1, ki2 and ki3 respectively
+        z = sqrt(z);
+        x = z(id);
+        if imag(x)>0
+            x = -x;
         end
-        function x = kfOut(obj,w)
-            x = sqrt( w * sqrt( (obj.rho*obj.S)/(obj.E*obj.IOut) ) ) ;
-        end  
+        end
+        
         % Post-Treatment Methods
         function setElementPlane(obj,v)
                 if ( v' * obj.e1 ) < .05 
@@ -202,8 +318,10 @@ classdef CURVEDELEMENT < handle
         %Set angle
         function angle = setAngle(obj)
             r1 = (obj.center - obj.nodeNeg.r);
+            r1 = r1/norm(r1);
             r2 = (obj.center - obj.nodePos.r);
-            angle = acos(r1'*r2/(norm(r1'*r2)));
+            r2 = r2/norm(r2);
+            angle = acos(r1'*r2);
         end
       
         %Set length
@@ -218,7 +336,7 @@ classdef CURVEDELEMENT < handle
         
         % Displacement Operator
         function X = Delta(obj,w,s)
-            X = diag( [exp(-1i*s*obj.kt(w)) exp(-1i*s*obj.kfIn(w)) exp(-s*obj.kfIn(w)) exp(-1i*s*obj.kfOut(w)) exp(-s*obj.kfOut(w)) exp(-1i*s*obj.kr(w))]);
+            X = diag( [exp(-1i*s*obj.ki(w,2)) exp(-1i*s*obj.ki(w,1)) exp(-1i*s*obj.ki(w,3)) exp(-1i*s*obj.ko(w,1)) exp(-1i*s*obj.ko(w,3)) exp(-1i*s*obj.ko(w,2))]);
         end
         
         % Rotation Operator
