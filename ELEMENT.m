@@ -109,7 +109,7 @@ classdef ELEMENT < handle
         end
         
         % Rotation Operator
-        function X = Rotation(obj)
+        function X = Rotation(obj,s)
             X = [([obj.e1 obj.e2 obj.e3])                         zeros(3);
                                  zeros(3)        ([obj.e1 obj.e2 obj.e3])];
         end
@@ -185,6 +185,42 @@ classdef ELEMENT < handle
             hold on;
             
         end
+        function showAnimatedDeformated(obj,W,w,time,nDiv)
+            
+            X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
+            Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
+            Z = [obj.nodeNeg.r(3) obj.nodePos.r(3)];
+            
+            p = plot3(X,Y,Z);   
+            p.Color = 'k';
+            p.LineStyle = '--';
+            hold on;
+            
+            X = [];
+            Y = [];
+            Z = [];
+            
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            
+            for i=0:(nDiv-1)
+                
+                s = obj.e1 * obj.L * ( i / (nDiv - 1) );
+                u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
+                u = real(u(1:3));
+                
+                X = [X ( s(1) + time * u(1) + obj.nodeNeg.r(1))];
+                Y = [Y ( s(2) + time * u(2) + obj.nodeNeg.r(2))];
+                Z = [Z ( s(3) + time * u(3) + obj.nodeNeg.r(3))];
+                
+            end
+            
+            p = plot3(X,Y,Z);   
+            p.Color = 'k';
+            hold on;
+            
+        end
+        
     end
     
 end

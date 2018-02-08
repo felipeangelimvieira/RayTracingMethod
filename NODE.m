@@ -19,9 +19,16 @@ classdef NODE < handle
         
         % Node's freedom of movement
         DeltaFree
-        e1
-        e2
-        e3
+        t1
+        t2
+        t3
+        r1
+        r2
+        r3
+        
+        % External Excitation
+        FExt
+        UExt
         
     end
     
@@ -44,9 +51,17 @@ classdef NODE < handle
             
             % Node initialised as free
             obj.DeltaFree = eye(6);
-            obj.e1 = [1;0;0];
-            obj.e2 = [0;1;0];
-            obj.e3 = [0;0;1];
+            obj.t1 = [1;0;0];
+            obj.t2 = [0;1;0];
+            obj.t3 = [0;0;1];
+            obj.r1 = [1;0;0];
+            obj.r2 = [0;1;0];
+            obj.r3 = [0;0;1];
+            
+            % External Forces and Displacements 
+            obj.FExt = zeros(6,1);
+            obj.UExt = zeros(6,1);
+            
             
         end
         function addElement(obj,element)
@@ -83,13 +98,93 @@ classdef NODE < handle
             X = obj.Rotation*(eye(6)-obj.DeltaFree);
         end
         function X = Rotation(obj)
-            X = [inv([obj.e1 obj.e2 obj.e3])                           zeros(3);
-                                    zeros(3)        inv([obj.e1 obj.e2 obj.e3])];
+            X = [inv([obj.t1 obj.t2 obj.t3])                           zeros(3);
+                                    zeros(3)        inv([obj.r1 obj.r2 obj.r3])];
         end
         
         % Post-Treatment Methods
         function ponctualMass(obj,m)
             obj.M(1:3,1:3) = m*eye(3);
+        end
+        function blockTranslation(obj,v)
+            
+            % No direction already blocked
+            if obj.DeltaFree(1,1)==1
+                obj.DeltaFree(1,1)=0;
+                obj.t1 = v / norm(v);
+                obj.t2 = rand(3,1);
+                obj.t2 = obj.t2 - (obj.t1' * obj.t2)*obj.t1;
+                obj.t2 = obj.t2 / norm(obj.t2);
+                obj.t3 = cross( obj.t1 , obj.t2 );
+                return
+            end
+            
+            % 1 direction already blocked
+            if obj.DeltaFree(2,2)==1
+                obj.DeltaFree(2,2)=0;
+                obj.t2 = v - (obj.t1' * v)*obj.t1;
+                obj.t2 = obj.t2 / norm(obj.t2);
+                obj.t3 = cross( obj.t1 , obj.t2 );
+                return
+            end
+            
+            % 2 directions already blocked
+            if obj.DeltaFree(3,3)==1
+                obj.DeltaFree(3,3)=0;
+                return
+            end
+            
+            % All directions already blocked
+            if obj.DeltaFree(3,3)==0
+                return
+            end
+            
+        end
+        function blockAllTranslation(obj)
+            obj.DeltaFree(1:3,1:3) = eye(3);
+            obj.t1 = [1;0;0];
+            obj.t2 = [0;1;0];
+            obj.t3 = [0;0;1];
+        end
+        function blockRotation(obj,v)
+            
+            % No direction already blocked
+            if obj.DeltaFree(4,4)==1
+                obj.DeltaFree(4,4)=0;
+                obj.r1 = v / norm(v);
+                obj.r2 = rand(3,1);
+                obj.r2 = obj.r2 - (obj.r1' * obj.r2)*obj.r1;
+                obj.r2 = obj.r2 / norm(obj.r2);
+                obj.r3 = cross( obj.r1 , obj.r2 );
+                return
+            end
+            
+            % 1 direction already blocked
+            if obj.DeltaFree(5,5)==1
+                obj.DeltaFree(5,5)=0;
+                obj.r2 = v - (obj.r1' * v)*obj.r1;
+                obj.r2 = obj.r2 / norm(obj.r2);
+                obj.r3 = cross( obj.r1 , obj.r2 );
+                return
+            end
+            
+            % 2 directions already blocked
+            if obj.DeltaFree(6,6)==1
+                obj.DeltaFree(6,6)=0;
+                return
+            end
+            
+            % All directions already blocked
+            if obj.DeltaFree(6,6)==0
+                return
+            end
+            
+        end
+        function blockAllRotations(obj)
+            obj.DeltaFree(4:6,4:6) = eye(3);
+            obj.r1 = [1;0;0];
+            obj.r2 = [0;1;0];
+            obj.r3 = [0;0;1];
         end
         
         function show(obj)
@@ -110,4 +205,7 @@ classdef NODE < handle
         end
 
     end
+        
+       
 end
+
