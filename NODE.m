@@ -103,10 +103,10 @@ classdef NODE < handle
         end
         
         % Post-Treatment Methods
-        function ponctualMass(obj,m)
+        function PonctualMass(obj,m)
             obj.M(1:3,1:3) = m*eye(3);
         end
-        function blockTranslation(obj,v)
+        function BlockTranslation(obj,v)
             
             % No direction already blocked
             if obj.DeltaFree(1,1)==1
@@ -140,13 +140,13 @@ classdef NODE < handle
             end
             
         end
-        function blockAllTranslation(obj)
+        function BlockAllTranslation(obj)
             obj.DeltaFree(1:3,1:3) = eye(3);
             obj.t1 = [1;0;0];
             obj.t2 = [0;1;0];
             obj.t3 = [0;0;1];
         end
-        function blockRotation(obj,v)
+        function BlockRotation(obj,v)
             
             % No direction already blocked
             if obj.DeltaFree(4,4)==1
@@ -180,14 +180,14 @@ classdef NODE < handle
             end
             
         end
-        function blockAllRotations(obj)
+        function BlockAllRotations(obj)
             obj.DeltaFree(4:6,4:6) = eye(3);
             obj.r1 = [1;0;0];
             obj.r2 = [0;1;0];
             obj.r3 = [0;0;1];
         end
         
-        function show(obj)
+        function Show(obj)
             
             if size(obj.elementList,1)==0
                 return

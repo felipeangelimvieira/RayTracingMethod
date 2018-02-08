@@ -2,22 +2,15 @@ classdef SYSTEM < handle
     
     properties
         
-        % System's Nodes and Elements
+        % System's Nodes, Elements, Material and Section Lists
         materialList
         sectionList
         elementList
         nodeList
         
-        % Matrix Emplacements
+        % Global Matrix
         T
         D
-        
-        % System's Charges and Initial Wave Vector
-        Eff
-        W0
-        
-        % Final Wave Vector
-        W
         
     end
     
@@ -32,13 +25,10 @@ classdef SYSTEM < handle
             
             obj.T = [];
             obj.D = [];
-            obj.Eff = [];
-            obj.W0 = [];
-            obj.W = [];
             
         end
         
-        function addNode(obj,id,r)
+        function AddNode(obj,id,r)
             for node = obj.nodeList
                 if node.id == id
                     error("Node's id conflict");
@@ -46,7 +36,7 @@ classdef SYSTEM < handle
             end
             obj.nodeList = [obj.nodeList  NODE(id,r)];
         end
-        function addElement(obj,id,idNodeNeg,idNodePos,idNodeRef,idMaterial,idSection)
+        function AddElement(obj,id,idNodeNeg,idNodePos,idNodeRef,idMaterial,idSection)
             if idNodeNeg==idNodePos|idNodeRef==idNodePos
                error("Elements must be defined by three different nodes");
             end
@@ -56,14 +46,14 @@ classdef SYSTEM < handle
                     error("Elements' id conflict");
                 end
             end
-            nodeNeg  = obj.findNodeById(idNodeNeg);
-            nodePos  = obj.findNodeById(idNodePos);
-            nodeRef  = obj.findNodeById(idNodeRef);
-            material = obj.findMaterialById(idMaterial);
-            section  = obj.findSectionById(idSection);
+            nodeNeg  = obj.FindNodeById(idNodeNeg);
+            nodePos  = obj.FindNodeById(idNodePos);
+            nodeRef  = obj.FindNodeById(idNodeRef);
+            material = obj.FindMaterialById(idMaterial);
+            section  = obj.FindSectionById(idSection);
             obj.elementList = [obj.elementList  {ELEMENT(id,nodeNeg,nodePos,nodeRef,material,section)}];
         end
-        function addCurvedElement(obj,id,idNodeNeg,idNodePos,idNodeRef,Angle,idMaterial,idSection)
+        function AddCurvedElement(obj,id,idNodeNeg,idNodePos,idNodeRef,Angle,idMaterial,idSection)
             if idNodeNeg==idNodePos|idNodeRef==idNodePos
                error("Elements must be defined by three different nodes");
             end
@@ -80,7 +70,7 @@ classdef SYSTEM < handle
             section  = obj.findSectionById(idSection);
             obj.elementList = [obj.elementList  {CURVEDELEMENT(id,nodeNeg,nodePos,nodeRef,Angle,material,section)}];
         end
-        function addMaterial(obj,id,Young,Poisson,Density)
+        function AddMaterial(obj,id,Young,Poisson,Density)
             for material = obj.materialList
                 if material.id == id
                     error("Material's id conflict");
@@ -88,7 +78,7 @@ classdef SYSTEM < handle
             end
             obj.materialList = [obj.elementList  MATERIAL(id,Young,Poisson,Density)];
         end
-        function addSection(obj,id,A,IIn,IOut,J)
+        function AddSection(obj,id,A,IIn,IOut,J)
             for section = obj.sectionList
                 if section.id == id
                     error("Section's id conflict");
@@ -97,36 +87,36 @@ classdef SYSTEM < handle
             obj.sectionList = [obj.sectionList SECTION(id,A,IIn,IOut,J)]; 
         end
         
-        function showStructure(obj)
+        function ShowStructure(obj)
             
-            figure('Name','Structure Preview');
+            figure('Name','Structure Preview','NumberTitle','off');
             
             for element = obj.elementList
                 element = element{1};
-                element.show();
+                element.Show();
             end
             
             for node = obj.nodeList
-                node.show();
+                node.Show();
             end
             
             daspect([1 1 1]);
             hold off;
         end
-        function showDeformatedStructure(obj,W,w)
+        function ShowDeformatedStructure(obj,W,w)
             
             
             i = 1;
             j = 12;
             for element = obj.elementList
                 element = element{1};
-                element.showDeformated(W(i:j),w,20);
+                element.ShowDeformated(W(i:j),w,20);
                 i = i+12;
                 j = j+12;
             end
             
             for node = obj.nodeList
-                node.show();
+                node.Show();
             end
             
             daspect([1 1 1]);
@@ -134,7 +124,7 @@ classdef SYSTEM < handle
             
         end
         
-        function x = findNodeById(obj,id)
+        function x = FindNodeById(obj,id)
             for node = obj.nodeList
                 if node.id == id
                     x = node;
@@ -143,7 +133,7 @@ classdef SYSTEM < handle
             end
             error('No node with such id');
         end
-        function x = findElementById(obj,id)
+        function x = FindElementById(obj,id)
             for element = obj.elementList
                 element = element{1};
                 if element.id == id
@@ -153,7 +143,7 @@ classdef SYSTEM < handle
             end
             error('No element with such id');
         end
-        function x = findMaterialById(obj,id)
+        function x = FindMaterialById(obj,id)
             for material = obj.materialList
                 if material.id == id
                     x = material;
@@ -162,7 +152,7 @@ classdef SYSTEM < handle
             end
             error('No material with such id');
         end
-        function x = findSectionById(obj,id)
+        function x = FindSectionById(obj,id)
             for section = obj.sectionList
                 if section.id == id
                     x = section;
@@ -181,7 +171,7 @@ classdef SYSTEM < handle
             
         end
         
-        function localTransmission(obj,node,w)
+        function LocalTransmission(obj,node,w)
             
             n = size(node.elementList,2);
             
@@ -348,15 +338,15 @@ classdef SYSTEM < handle
             iLocal = iLocal + 1; % Jump to next line in Tn
             end
         end
-        function globalTransmission(obj,w)
+        function GlobalTransmission(obj,w)
             for node = obj.nodeList
                 n = size(node.elementList,2);
                 if n ~= 0
-                    obj.localTransmission(node,w);
+                    obj.LocalTransmission(node,w);
                 end
             end
         end
-        function globalDispersion(obj,w)
+        function GlobalDispersion(obj,w)
             i = 0;
             for element = obj.elementList
                 element = element{1};
@@ -366,22 +356,177 @@ classdef SYSTEM < handle
                 i = i + 1;
             end
         end
-        function x = Determinant(obj,w)
+        function M = ProblemMatrix(obj,w)
             n = size(obj.elementList,2);
-            obj.globalTransmission(w);
-            obj.globalDispersion(w);
+            obj.GlobalTransmission(w);
+            obj.GlobalDispersion(w);
             M = (eye(n*12)-obj.T*obj.D);
-            x = min(abs(eig(M)));
         end
-        function X = associatedMode(obj,w)
+        function X = AssociatedMode(obj,w)
             n = size(obj.elementList,2);
-            obj.globalTransmission(w);
-            obj.globalDispersion(w);
+            obj.GlobalTransmission(w);
+            obj.GlobalDispersion(w);
             [V,D] = eig(eye(12*n) - obj.T*obj.D);
             D = diag(D);
             [~,Min] = min(D);
             X = V(:,Min);
             X = X;
+        end
+        function X = GlobalInitialWave(obj,w)
+            X = zeros(size(obj.elementList,2),1);
+            for node = obj.nodeList
+                n = size(node.elementList,2);
+                if n ~= 0
+                    X = X + obj.LocalInitialWave(node,w);
+                end
+            end
+        end
+        function X = LocalInitialWave(obj,node,w)
+            
+            X = zeros(size(obj.elementList,2),1);
+            n = size(node.elementList,2);
+            
+            % Free Case
+            MOutFree = zeros(6*n);
+            
+            i = 0;
+            j = 0;
+            
+            % 1st Line (Effort Continuity):
+            
+            % Element's Effort Contribution
+            for element = node.elementList
+                element = element{1};
+                if node.isPos(element)
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation(element.L)*element.PhiNeg(w);
+                else
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation(0)*element.PhiPos(w);
+                end 
+            j=j+1;      
+            end
+            
+            % Mass, Stiffness and Damping
+            j = j-1;
+            MKC = node.K - i*w*node.C - w*w*node.M;
+            
+            if node.isPos(element)
+                 MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation(element.L)*element.PsiNeg(w);
+            else
+                 MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) + MKC*element.Rotation(0)*element.PsiPos(w);
+            end
+            
+            % Other Lines (Displacement Continuity):
+            % Sub Diagonal
+            j = 0;
+            i = 1;
+            for element = node.elementList
+                element = element{1};
+                
+                if n==1 % No Sub Diagonal (No equations)
+                    break
+                end
+                
+                if i==(n) %End of Sub-Diagonal
+                    break
+                end
+                
+                if node.isPos(element)
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation(element.L)*element.PsiNeg(w);
+                else
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation(0)*element.PsiPos(w);
+                end
+                
+                i = i + 1;
+                j = j + 1;
+                
+            end
+            
+            % Final Column
+            for i = 1:n-1
+                if n==1 % No Sub Diagonal (No equations)
+                    break
+                end
+                if node.isPos(element)
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation(element.L)*element.PsiNeg(w);
+                else
+                    MOutFree( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) = -element.Rotation(0)*element.PsiPos(w);
+                end
+                
+            end
+            
+            % Blocked Case
+            MOutBlocked = zeros(6*n);
+            i = 0;
+            j = 0;
+
+            for element = node.elementList
+                element = element{1};
+                if node.isPos(element)
+                    MOutBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation(element.L)*element.PsiNeg(w);
+                else
+                    MOutBlocked( (1+6*i) : (6+6*i) , (1+6*j) : (6+6*j) ) =  element.Rotation(0)*element.PsiPos(w);
+                end
+            
+                i = i + 1;
+                j = j + 1;
+            
+            end
+            
+            % Tn Calcul
+            IFreedom = zeros(6*n);
+            IRestriction = zeros(6*n);
+            for i=0:(n-1)
+                IFreedom( (1 + 6*i) : (6 + 6*i) , (1 + 6*i) : (6 + 6*i) ) = node.FreedomInGlobal;
+                IRestriction( (1 + 6*i) : (6 + 6*i) , (1 + 6*i) : (6 + 6*i) ) = node.RestrictionInGlobal;
+            end
+            
+            MOut = IFreedom*MOutFree + IRestriction*MOutBlocked;
+            
+            % Construction of Ext
+            Ext = zeros(6*n,1);
+            Ext(1:6) = node.RestrictionInGlobal*node.UExt + node.FreedomInGlobal*node.FExt ;
+            for i=1:(n-1)
+                Ext((1 + 6*i) : (6 + 6*i)) = node.RestrictionInGlobal*node.UExt;
+            end
+            
+            % System Solving
+            W0 = MOut\Ext;
+            
+            % Local W0 placing in Global W0 Contribution
+            iLocal = 0; 
+            for elementI = node.elementList % W0i is broken
+                elementI = elementI{1};
+                
+                % Search for corresponding W0 line
+                i = 0;
+                for element = obj.elementList 
+                element = element{1};
+                    if element == elementI
+                        break
+                    end
+                i = i+1;
+                end
+                
+                % Determines whether the leaving wave is positive or negative
+                if node.isNeg(elementI)
+                    iAux = 0;
+                else
+                    iAux = 1;
+                end
+                
+                % Place the block
+                X( ( 1 + 12*i + 6*iAux ) : ( 6 + 12*i + 6*iAux ) ) = W0( ( 1 + iLocal*6 ) : ( 6 + iLocal*6 ) ); 
+                
+                iLocal = iLocal + 1; % Jump to next line in Tn
+            end
+        end
+        function X = ForcedResponse(obj,w)
+            W = obj.GlobalnitialWave(w);
+            obj.GlobalDispersion(w);
+            obj.GlobalTransmission(w);
+            n = size(obj.elementList,2);
+            M = (eye(n*12)-obj.T*obj.D);
+            X = M/W;
         end
         
     end

@@ -114,7 +114,7 @@ classdef ELEMENT < handle
                                  zeros(3)        ([obj.e1 obj.e2 obj.e3])];
         end
 
-        function show(obj)
+        function Show(obj)
             
             X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
             Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
@@ -124,33 +124,40 @@ classdef ELEMENT < handle
             p.Color = 'k';
             hold on;
             
-            X = (obj.nodeNeg.r(1) + obj.nodePos.r(1))/2 ;
-            Y = (obj.nodeNeg.r(2) + obj.nodePos.r(2))/2 ;
-            Z = (obj.nodeNeg.r(3) + obj.nodePos.r(3))/2 ;
+            x = (obj.nodeNeg.r(1) + obj.nodePos.r(1))/2;
+            y = (obj.nodeNeg.r(2) + obj.nodePos.r(2))/2;
+            z = (obj.nodeNeg.r(3) + obj.nodePos.r(3))/2;
             
-            U = obj.e1(1)*obj.L;
-            V = obj.e1(2)*obj.L;
-            W = obj.e1(3)*obj.L;
+            X = [x];
+            Y = [y];
+            Z = [z];
             
-            p = quiver3(X,Y,Z,U,V,W,.15);
-            p.Color = 'red';
+            X = [X x + obj.e2(1) * ( 0.05 * obj.L)] ;
+            Y = [Y y + obj.e2(2) * ( 0.05 * obj.L)] ;
+            Z = [Z z + obj.e2(3) * ( 0.05 * obj.L)] ;
             
-            U = obj.e2(1)*obj.L;
-            V = obj.e2(2)*obj.L;
-            W = obj.e2(3)*obj.L;
+            X = [X x + obj.e1(1) * ( 0.15 * obj.L)] ;
+            Y = [Y y + obj.e1(2) * ( 0.15 * obj.L)] ;
+            Z = [Z z + obj.e1(3) * ( 0.15 * obj.L)] ;
             
-            p = quiver3(X,Y,Z,U,V,W,.15);
-            p.Color = 'blue';
+            fill3(X,Y,Z,'g');
             
-            U = obj.e3(1)*obj.L;
-            V = obj.e3(2)*obj.L;
-            W = obj.e3(3)*obj.L;
+            X = [x];
+            Y = [y];
+            Z = [z];
             
-            p = quiver3(X,Y,Z,U,V,W,.15);
-            p.Color = 'green';
+            X = [X x + obj.e3(1) * ( 0.05 * obj.L)] ;
+            Y = [Y y + obj.e3(2) * ( 0.05 * obj.L)] ;
+            Z = [Z z + obj.e3(3) * ( 0.05 * obj.L)] ;
+            
+            X = [X x + obj.e1(1) * ( 0.15 * obj.L)] ;
+            Y = [Y y + obj.e1(2) * ( 0.15 * obj.L)] ;
+            Z = [Z z + obj.e1(3) * ( 0.15 * obj.L)] ;
+            
+            fill3(X,Y,Z,'r');
             
         end
-        function showDeformated(obj,W,w,nDiv)
+        function ShowDeformated(obj,W,w,nDiv)
             
             X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
             Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
@@ -177,41 +184,6 @@ classdef ELEMENT < handle
                 X = [X ( s(1) + u(1) + obj.nodeNeg.r(1))];
                 Y = [Y ( s(2) + u(2) + obj.nodeNeg.r(2))];
                 Z = [Z ( s(3) + u(3) + obj.nodeNeg.r(3))];
-                
-            end
-            
-            p = plot3(X,Y,Z);   
-            p.Color = 'k';
-            hold on;
-            
-        end
-        function showAnimatedDeformated(obj,W,w,time,nDiv)
-            
-            X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
-            Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
-            Z = [obj.nodeNeg.r(3) obj.nodePos.r(3)];
-            
-            p = plot3(X,Y,Z);   
-            p.Color = 'k';
-            p.LineStyle = '--';
-            hold on;
-            
-            X = [];
-            Y = [];
-            Z = [];
-            
-            WPos = W(1:6);
-            WNeg = W(7:12);
-            
-            for i=0:(nDiv-1)
-                
-                s = obj.e1 * obj.L * ( i / (nDiv - 1) );
-                u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
-                u = real(u(1:3));
-                
-                X = [X ( s(1) + time * u(1) + obj.nodeNeg.r(1))];
-                Y = [Y ( s(2) + time * u(2) + obj.nodeNeg.r(2))];
-                Z = [Z ( s(3) + time * u(3) + obj.nodeNeg.r(3))];
                 
             end
             
