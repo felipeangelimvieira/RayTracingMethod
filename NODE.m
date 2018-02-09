@@ -106,6 +106,39 @@ classdef NODE < handle
         function PonctualMass(obj,m)
             obj.M(1:3,1:3) = m*eye(3);
         end
+        function Spring(obj,k,v)
+            e1 = v/norm(v);
+            e2 = rand(3,1);
+            e2 = e2 - ( e1' * e2 ) * e1 ;
+            e2 = e2/norm(e2);
+            e3 = cross(e1,e2);
+            obj.K(1:3,1:3) = obj.K(1:3,1:3) + [e1 e2 e3] * diag([k 0 0]) * [e1' ; e2'; e3'];
+        end
+        function TorsionSpring(obj,k,v)
+            e1 = v/norm(v);
+            e2 = rand(3,1);
+            e2 = e2 - ( e1' * e2 ) * e1 ;
+            e2 = e2/norm(e2);
+            e3 = cross(e1,e2);
+            obj.K(4:6,4:6) = obj.K(4:6,4:6) + [e1 e2 e3] * diag([k 0 0]) * [e1' ; e2'; e3'];
+        end
+        function Damper(obj,c,v)
+            e1 = v/norm(v);
+            e2 = rand(3,1);
+            e2 = e2 - ( e1' * e2 ) * e1 ;
+            e2 = e2/norm(e2);
+            e3 = cross(e1,e2);
+            obj.K(1:3,1:3) = obj.K(1:3,1:3) + [e1 e2 e3] * diag([c 0 0]) * [e1' ; e2'; e3'];
+        end
+        function TorsionDamper(obj,c,v)
+            e1 = v/norm(v);
+            e2 = rand(3,1);
+            e2 = e2 - ( e1' * e2 ) * e1 ;
+            e2 = e2/norm(e2);
+            e3 = cross(e1,e2);
+            obj.K(4:6,4:6) = obj.K(4:6,4:6) + [e1 e2 e3] * diag([c 0 0]) * [e1' ; e2'; e3'];
+        end
+        
         function BlockTranslation(obj,v)
             
             % No direction already blocked

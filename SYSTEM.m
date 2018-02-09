@@ -98,6 +98,22 @@ classdef SYSTEM < handle
             node = obj.FindNodeById(idNode);
             node.PonctualMass(m);
         end
+        function AddSpring(obj,idNode,k,v)
+            node = obj.FindNodeById(idNode);
+            node.Spring(k,v);
+        end
+        function AddTorsionSpring(obj,idNode,k,v)
+            node = obj.FindNodeById(idNode);
+            node.TorsionSpring(k,v);
+        end
+        function AddDamper(obj,idNode,c,v)
+            node = obj.FindNodeById(idNode);
+            node.Damper(c,v);
+        end
+        function AddTorsionDamper(obj,idNode,c,v)
+            node = obj.FindNodeById(idNode);
+            node.TorsionDamper(c,v);
+        end
         function BlockTranslationDirection(obj,idNode,v)
             node = obj.FindNodeById(idNode);
             node.BlockTranslation(v);
