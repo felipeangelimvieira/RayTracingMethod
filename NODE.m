@@ -186,6 +186,12 @@ classdef NODE < handle
             obj.r2 = [0;1;0];
             obj.r3 = [0;0;1];
         end
+        function ExternalForce(obj,F)
+            obj.FExt = F;
+        end
+        function ImposedDisplacement(obj,U)
+            obj.UExt = U;
+        end
         
         function Show(obj)
             
@@ -205,7 +211,6 @@ classdef NODE < handle
         end
 
     end
-        
-       
+         
 end
 

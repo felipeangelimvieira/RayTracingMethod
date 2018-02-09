@@ -86,42 +86,38 @@ classdef SYSTEM < handle
             end
             obj.sectionList = [obj.sectionList SECTION(id,A,IIn,IOut,J)]; 
         end
-        
-        function ShowStructure(obj)
-            
-            figure('Name','Structure Preview','NumberTitle','off');
-            
-            for element = obj.elementList
-                element = element{1};
-                element.Show();
-            end
-            
-            for node = obj.nodeList
-                node.Show();
-            end
-            
-            daspect([1 1 1]);
-            hold off;
+        function AddExternalForce(obj,idNode,F)
+            node = obj.FindNodeById(idNode);
+            node.ExternalForce(F);
         end
-        function ShowDeformatedStructure(obj,W,w)
-            
-            
-            i = 1;
-            j = 12;
-            for element = obj.elementList
-                element = element{1};
-                element.ShowDeformated(W(i:j),w,20);
-                i = i+12;
-                j = j+12;
-            end
-            
-            for node = obj.nodeList
-                node.Show();
-            end
-            
-            daspect([1 1 1]);
-            hold off;
-            
+        function AddImposedDisplacement(obj,idNode,U)
+            node = obj.FindNodeById(idNode);
+            node.ImposedDisplacement(U);
+        end
+        function AddPonctualMass(obj,idNode,m)
+            node = obj.FindNodeById(idNode);
+            node.PonctualMass(m);
+        end
+        function BlockTranslationDirection(obj,idNode,v)
+            node = obj.FindNodeById(idNode);
+            node.BlockTranslation(v);
+        end
+        function BlockRotationDirection(obj,idNode,v)
+            node = obj.FindNodeById(idNode);
+            node.BlockRotation(v);
+        end
+        function BlockAllTranslation(obj,idNode)
+            node = obj.FindNodeById(idNode);
+            node.BlockAllTranslation();
+        end
+        function BlockAllRotation(obj,idNode)
+            node = obj.FindNodeById(idNode);
+            node.BlockAllRotation();
+        end
+        function BlockAll(obj,idNode)
+            node = obj.FindNodeById(idNode);
+            node.BlockAllTranslation();
+            node.BlockAllRotation();
         end
         
         function x = FindNodeById(obj,id)
@@ -160,6 +156,43 @@ classdef SYSTEM < handle
                 end
             end
             error('No node with such id');
+        end
+        
+        function ShowStructure(obj)
+            
+            figure('Name','Structure Preview','NumberTitle','off');
+            
+            for element = obj.elementList
+                element = element{1};
+                element.Show();
+            end
+            
+            for node = obj.nodeList
+                node.Show();
+            end
+            
+            daspect([1 1 1]);
+            hold off;
+        end
+        function ShowDeformatedStructure(obj,W,w)
+            
+            
+            i = 1;
+            j = 12;
+            for element = obj.elementList
+                element = element{1};
+                element.ShowDeformated(W(i:j),w,20);
+                i = i+12;
+                j = j+12;
+            end
+            
+            for node = obj.nodeList
+                node.Show();
+            end
+            
+            daspect([1 1 1]);
+            hold off;
+            
         end
         
         function InitializeMatrix(obj)
@@ -361,6 +394,9 @@ classdef SYSTEM < handle
             obj.GlobalTransmission(w);
             obj.GlobalDispersion(w);
             M = (eye(n*12)-obj.T*obj.D);
+        end
+        function x = Determinant(obj,w)
+           x = abs(det(obj.ProblemMatrix(w)));
         end
         function X = AssociatedMode(obj,w)
             n = size(obj.elementList,2);
