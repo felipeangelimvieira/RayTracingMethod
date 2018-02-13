@@ -192,8 +192,27 @@ classdef SYSTEM < handle
         end
         function ShowDeformatedStructure(obj,W,w)
             
-            scale = 100000;
+            % Scale Definition
+            UMax = -1;
+            i = 0;
+            for element = obj.elementList
+                element = element{1};
+                WPos = W((i+1):(i+6));
+                WNeg = W((i+7):(i+12));
+                S = 0:(.05*element.L):element.L;
+                for s = S
+                    U = element.PsiPos(w)*element.Delta(w,s)*WPos + element.PsiNeg(w)*element.Delta(w,element.L-s)*WNeg;
+                    U = real(U(1:3));
+                    if norm(U)>UMax
+                        UMax = norm(U);
+                        LMax = element.L;
+                    end
+                end
+                i = i+12;
+            end 
+            scale = .30 * (LMax/UMax);
             W = W*scale;
+            
             
             i = 1;
             j = 12;
@@ -413,14 +432,8 @@ classdef SYSTEM < handle
             obj.GlobalDispersion(w);
             M = (eye(n*12)-obj.T*obj.D);
         end
-        function x = Determinant(obj,w)
-           x = abs(det(obj.ProblemMatrix(w)));
-        end
         function X = AssociatedMode(obj,w)
-            n = size(obj.elementList,2);
-            obj.GlobalTransmission(w);
-            obj.GlobalDispersion(w);
-            [V,D] = eig(eye(12*n) - obj.T*obj.D);
+            [V,D] = eig(obj.ProblemMatrix(w));
             D = diag(D);
             [~,Min] = min(D);
             X = V(:,Min);
@@ -579,8 +592,7 @@ classdef SYSTEM < handle
             obj.GlobalDispersion(w);
             obj.GlobalTransmission(w);
             n = size(obj.elementList,2);
-            M = (eye(n*12)-obj.T*obj.D);
-            X = M/W;
+            X = Sys.ProblemMatrix(w)/W;
         end
         
     end
