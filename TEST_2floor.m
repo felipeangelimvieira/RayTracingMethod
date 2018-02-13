@@ -61,8 +61,12 @@ Sys.ShowStructure();
 figure();
 F = [];
 Y = [];
-for f = 0.01:.01:.05
+for f = 0.62:.001:.66
     Y = [Y Sys.Determinant(f*2*pi)];
     F = [F f];
 end
 plot(F,Y);
+figure();
+w = .6305*2*pi;
+W = Sys.AssociatedMode(w);
+Sys.ShowDeformatedStructure(W,w);

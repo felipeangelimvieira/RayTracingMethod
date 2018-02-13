@@ -192,6 +192,8 @@ classdef SYSTEM < handle
         end
         function ShowDeformatedStructure(obj,W,w)
             
+            scale = 100000;
+            W = W*scale;
             
             i = 1;
             j = 12;
