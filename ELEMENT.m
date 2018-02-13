@@ -122,8 +122,11 @@ classdef ELEMENT < handle
             
             p = plot3(X,Y,Z);   
             p.Color = 'k';
+            
             hold on;
             
+        end
+        function ShowReferential(obj,scale)
             x = (obj.nodeNeg.r(1) + obj.nodePos.r(1))/2;
             y = (obj.nodeNeg.r(2) + obj.nodePos.r(2))/2;
             z = (obj.nodeNeg.r(3) + obj.nodePos.r(3))/2;
@@ -132,13 +135,13 @@ classdef ELEMENT < handle
             Y = [y];
             Z = [z];
             
-            X = [X x + obj.e2(1) * ( 0.05 * obj.L)] ;
-            Y = [Y y + obj.e2(2) * ( 0.05 * obj.L)] ;
-            Z = [Z z + obj.e2(3) * ( 0.05 * obj.L)] ;
+            X = [X x + obj.e2(1) * ( 0.05 * scale * obj.L)] ;
+            Y = [Y y + obj.e2(2) * ( 0.05 * scale * obj.L)] ;
+            Z = [Z z + obj.e2(3) * ( 0.05 * scale *  obj.L)] ;
             
-            X = [X x + obj.e1(1) * ( 0.15 * obj.L)] ;
-            Y = [Y y + obj.e1(2) * ( 0.15 * obj.L)] ;
-            Z = [Z z + obj.e1(3) * ( 0.15 * obj.L)] ;
+            X = [X x + obj.e1(1) * ( 0.15 * scale *  obj.L)] ;
+            Y = [Y y + obj.e1(2) * ( 0.15 * scale *  obj.L)] ;
+            Z = [Z z + obj.e1(3) * ( 0.15 * scale *  obj.L)] ;
             
             fill3(X,Y,Z,'g');
             
@@ -146,16 +149,17 @@ classdef ELEMENT < handle
             Y = [y];
             Z = [z];
             
-            X = [X x + obj.e3(1) * ( 0.05 * obj.L)] ;
-            Y = [Y y + obj.e3(2) * ( 0.05 * obj.L)] ;
-            Z = [Z z + obj.e3(3) * ( 0.05 * obj.L)] ;
+            X = [X x + obj.e3(1) * ( 0.05 * scale *  obj.L)] ;
+            Y = [Y y + obj.e3(2) * ( 0.05 * scale *  obj.L)] ;
+            Z = [Z z + obj.e3(3) * ( 0.05 * scale *  obj.L)] ;
             
-            X = [X x + obj.e1(1) * ( 0.15 * obj.L)] ;
-            Y = [Y y + obj.e1(2) * ( 0.15 * obj.L)] ;
-            Z = [Z z + obj.e1(3) * ( 0.15 * obj.L)] ;
+            X = [X x + obj.e1(1) * ( 0.15 * scale *  obj.L)] ;
+            Y = [Y y + obj.e1(2) * ( 0.15 * scale *  obj.L)] ;
+            Z = [Z z + obj.e1(3) * ( 0.15 * scale *  obj.L)] ;
             
             fill3(X,Y,Z,'r');
             
+            hold on;
         end
         function ShowDeformated(obj,W,w,nDiv)
             

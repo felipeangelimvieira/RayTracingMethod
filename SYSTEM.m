@@ -178,9 +178,19 @@ classdef SYSTEM < handle
             
             figure('Name','Structure Preview','NumberTitle','off');
             
+            LMed = 0;
+            n = size(obj.elementList,2);
+            
             for element = obj.elementList
                 element = element{1};
                 element.Show();
+                LMed = LMed + element.L/n;
+            end
+            
+            for element = obj.elementList
+                element = element{1};
+                scale = (LMed/element.L);
+                element.ShowReferential(scale);
             end
             
             for node = obj.nodeList
