@@ -202,6 +202,8 @@ classdef SYSTEM < handle
         end
         function ShowDeformatedStructure(obj,W,w)
             
+            figure('Name','Deformated Structure Preview','NumberTitle','off');
+            
             % Scale Definition
             UMax = -1;
             i = 0;

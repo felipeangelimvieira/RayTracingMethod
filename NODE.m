@@ -213,7 +213,7 @@ classdef NODE < handle
             end
             
         end
-        function BlockAllRotations(obj)
+        function BlockAllRotation(obj)
             obj.DeltaFree(4:6,4:6) = eye(3);
             obj.r1 = [1;0;0];
             obj.r2 = [0;1;0];

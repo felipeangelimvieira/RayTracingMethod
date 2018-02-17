@@ -12,27 +12,27 @@ Sys.AddNode( 4 , [ 0 ; 1 ; 0 ] );
 
 %Elements
 Sys.AddElement( 1 , 1 , 2 , 4 , 1 , 1 );
-%Sys.addElement( 2 , 2 , 3 , 4 , 1 , 1 );
+Sys.AddElement( 2 , 2 , 3 , 4 , 1 , 1 );
 
 %Limit Conditions
-A = Sys.FindNodeById(1);
-A.DeltaFree = zeros(6);
-a = Sys.FindElementById(1);
-%b = Sys.findElementById(2);
+Sys.BlockAll(1);
 
 %Solving
 Sys.InitializeMatrix();
-Sys.ShowStructure();
 
 figure();
 F = [];
 Y = [];
-for f = 0.1:.1:2
-    y = Sys.Determinant(f*2*pi);
-    Y = [Y y];
+
+for f = 1:.01:10
+    
+    M = (Sys.ProblemMatrix(f*2*pi));
+    Y = [Y abs(det(M))];*
+    
     F = [F f];
 end
 plot(F,Y);
+
 w = 1.44*2*pi;
 W = Sys.AssociatedMode(w);
-Sys.ShowDeformatedStructure(W,w)
+%Sys.ShowDeformatedStructure(W,w)
