@@ -55,17 +55,9 @@ D.DeltaFree = zeros(6);
 
 %Solving
 Sys.InitializeMatrix();
-Sys.ShowStructure();
 
+Sys.FindModalFreqs(.1,.01,3)
 
-figure();
-F = [];
-Y = [];
-for f = 1:1:1000
-    Y = [Y min(abs(eig(Sys.ProblemMatrix(f*2*pi))))];
-    F = [F f];
-end
-plot(F,Y);
 w = .6305*2*pi;
 W = Sys.AssociatedMode(w);
 Sys.ShowDeformatedStructure(W,w);

@@ -439,10 +439,44 @@ classdef SYSTEM < handle
             end
         end
         function M = ProblemMatrix(obj,w)
-            n = size(obj.elementList,2);
+            n = 12*size(obj.elementList,2);
             obj.GlobalTransmission(w);
             obj.GlobalDispersion(w);
-            M = (eye(n*12)-obj.T*obj.D);
+            M = (eye(n)-obj.T*obj.D);
+        end
+        function x = RandomWave(obj)
+            n = 12*size(obj.elementList,2);
+            x = rand(n,1);
+            x = x/norm(x);
+        end
+        function x = RayleighProblemMatrix(obj,w,v)
+            M = obj.ProblemMatrix(w);
+            y = M\v;
+            x = 1/norm(y);
+            y = y/norm(y);
+        end
+        function x = FindModalFreqs(obj,fMin,fStep,fMax)
+            
+            v = obj.RandomWave();
+            yAnt=obj.RayleighProblemMatrix(fMin*2*pi,v);
+            options = optimset('TolX',.001);
+            OldDiffIsNeg = 0;
+            x = [];
+
+            for f = fMin:fStep:fMax
+            yNow = obj.RayleighProblemMatrix(f*2*pi,v);
+            if yNow<yAnt
+                NewDiffIsPos = 0;
+            else
+                NewDiffIsPos = 1;
+            end
+            if NewDiffIsPos & OldDiffIsNeg
+                fp = fminbnd(@(t) obj.RayleighProblemMatrix(t*2*pi,v),f-fStep*3,f+fStep,options);
+                x = [x fp];
+            end
+            yAnt = yNow;
+            OldDiffIsNeg = 1 - NewDiffIsPos;
+            end
         end
         function X = AssociatedMode(obj,w)
             [V,D] = eig(obj.ProblemMatrix(w));
@@ -606,7 +640,6 @@ classdef SYSTEM < handle
             n = size(obj.elementList,2);
             X = Sys.ProblemMatrix(w)/W;
         end
-        
     end
     
 end
