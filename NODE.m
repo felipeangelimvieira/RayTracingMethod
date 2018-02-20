@@ -174,7 +174,7 @@ classdef NODE < handle
             
         end
         function BlockAllTranslation(obj)
-            obj.DeltaFree(1:3,1:3) = eye(3);
+            obj.DeltaFree(1:3,1:3) = zeros(3);
             obj.t1 = [1;0;0];
             obj.t2 = [0;1;0];
             obj.t3 = [0;0;1];
@@ -214,7 +214,7 @@ classdef NODE < handle
             
         end
         function BlockAllRotation(obj)
-            obj.DeltaFree(4:6,4:6) = eye(3);
+            obj.DeltaFree(4:6,4:6) = zeros(3);
             obj.r1 = [1;0;0];
             obj.r2 = [0;1;0];
             obj.r3 = [0;0;1];
