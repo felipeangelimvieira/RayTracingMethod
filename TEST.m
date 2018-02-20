@@ -15,9 +15,6 @@ Sys.AddNode( 5 , [ 0 ; 0 ; 1 ] );
 Sys.AddElement( 1 , 1 , 2 , 5 , 1 , 1 );
 Sys.AddElement( 2 , 2 , 3 , 5 , 1 , 1 );
 Sys.AddElement( 3 , 2 , 4 , 5 , 1 , 1 );
-A = Sys.FindElementById(1);
-B = Sys.FindElementById(2);
-C = Sys.FindElementById(3);
 
 %Limit Conditions
 Sys.BlockAll(1);
@@ -25,7 +22,9 @@ Sys.BlockAll(1);
 %Solving
 Sys.InitializeMatrix();
 
-
-w = 1.44*2*pi;
-W = Sys.AssociatedMode(w);
-%Sys.ShowDeformatedStructure(W,w)
+fList = Sys.FindModalFreqs(.1,.01,3)
+for f = fList
+    w = f*2*pi;
+    W = Sys.AssociatedMode(w);
+    Sys.ShowDeformatedStructure(W,w);
+end

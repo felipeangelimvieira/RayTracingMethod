@@ -56,8 +56,10 @@ D.DeltaFree = zeros(6);
 %Solving
 Sys.InitializeMatrix();
 
-Sys.FindModalFreqs(.1,.01,3)
 
-w = .6305*2*pi;
-W = Sys.AssociatedMode(w);
-Sys.ShowDeformatedStructure(W,w);
+fList = Sys.FindModalFreqs(.1,.01,3)
+for f = fList
+    w = f*2*pi;
+    W = Sys.AssociatedMode(w);
+    Sys.ShowDeformatedStructure(W,w);
+end
