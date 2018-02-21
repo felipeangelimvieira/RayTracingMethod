@@ -44,14 +44,10 @@ Sys.AddElement( 33 , 11 , 12 , 100 , 1 , 1 );
 Sys.AddElement( 34 , 12 , 9 , 100 , 1 , 1 );
 
 %Limit Conditions
-A = Sys.FindNodeById(1);
-A.DeltaFree = zeros(6);
-B = Sys.FindNodeById(2);
-B.DeltaFree = zeros(6);
-C = Sys.FindNodeById(3);
-C.DeltaFree = zeros(6);
-D = Sys.FindNodeById(4);
-D.DeltaFree = zeros(6);
+Sys.BlockAll(1);
+Sys.BlockAll(2);
+Sys.BlockAll(3);
+Sys.BlockAll(4);
 
 %Solving
 Sys.InitializeMatrix();
