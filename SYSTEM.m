@@ -204,6 +204,7 @@ classdef SYSTEM < handle
             
             Name = strcat('Deformated Structure Preview ( ',num2str(w/(2*pi),'%.3f'),' Hz )');
             figure('Name',Name,'NumberTitle','off');
+            w = w;
             
             % Scale Definition
             UMax = -1;
