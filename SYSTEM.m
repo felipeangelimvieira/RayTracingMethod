@@ -207,28 +207,6 @@ classdef SYSTEM < handle
             Name = strcat('Deformated Structure Preview ( ',num2str(w/(2*pi),'%.3f'),' Hz )');
             figure('Name',Name,'NumberTitle','off');
             
-            % Scale Definition
-            UMax = -1;
-            i = 0;
-            for element = obj.elementList
-                element = element{1};
-                WPos = W((i+1):(i+6));
-                WNeg = W((i+7):(i+12));
-                S = 0:(.05*element.L):element.L;
-                for s = S
-                    U = element.PsiPos(w)*element.Delta(w,s)*WPos + element.PsiNeg(w)*element.Delta(w,element.L-s)*WNeg;
-                    U = real(U(1:3));
-                    if norm(U)>UMax
-                        UMax = norm(U);
-                        LMax = element.L;
-                    end
-                end
-                i = i+12;
-            end 
-            scale = .30 * (LMax/UMax);
-            W = W*scale;
-            
-            
             i = 1;
             j = 12;
             for element = obj.elementList
@@ -487,8 +465,31 @@ classdef SYSTEM < handle
             [V,D] = eig(obj.ProblemMatrix(w));
             D = diag(D);
             [~,Min] = min(D);
-            X = V(:,Min);
-            X = X;
+            W = V(:,Min);
+            
+            % Scale Definition
+            UMax = -1;
+            i = 0;
+            for element = obj.elementList
+                element = element{1};
+                WPos = W((i+1):(i+6));
+                WNeg = W((i+7):(i+12));
+                S = 0:(.05*element.L):element.L;
+                for s = S
+                    U = element.PsiPos(w)*element.Delta(w,s)*WPos + element.PsiNeg(w)*element.Delta(w,element.L-s)*WNeg;
+                    U = real(U(1:3));
+                    if norm(U)>UMax
+                        UMax = norm(U);
+                        LMax = element.L;
+                    end
+                end
+                i = i+12;
+            end 
+            scale = .30 * (LMax/UMax);
+            W = W*scale;
+            
+            X = W;
+            
         end
         
         function X = GlobalInitialWave(obj,w)

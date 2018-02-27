@@ -52,7 +52,7 @@ Sys.BlockAll(4);
 %External excitation
 Sys.AddExternalForce(9,[0;0;0;0;0;0]);
 Sys.AddExternalForce(11,[0;0;0;0;0;0]);
-Sys.AddImposedDisplacement(1,[0;0;0;1;0;0]);
+Sys.AddImposedDisplacement(1,[0;.1;0;0;0;0]);
 
 
 %Solving
