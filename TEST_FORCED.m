@@ -49,13 +49,16 @@ Sys.BlockAll(2);
 Sys.BlockAll(3);
 Sys.BlockAll(4);
 
+%External excitation
+Sys.AddExternalForce(9,[0;0;0;0;0;0]);
+Sys.AddExternalForce(11,[0;0;0;0;0;0]);
+Sys.AddImposedDisplacement(1,[0;0;0;1;0;0]);
+
+
 %Solving
 Sys.InitializeMatrix();
 
-
-fList = Sys.FindModalFreqs(.01,.01,10);
-for f = fList
-    w = f*2*pi;
-    W = Sys.AssociatedMode(w);
-    Sys.ShowDeformatedStructure(W,w);
-end
+f = 2;
+w = f*2*pi;
+W = Sys.ForcedResponse(w);
+Sys.ShowDeformatedStructure(W,w);

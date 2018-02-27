@@ -14,7 +14,7 @@ Sys.AddNode( 5 , [ 0 ; 0 ; 1 ] );
 %Elements
 Sys.AddElement( 1 , 1 , 2 , 5 , 1 , 1 );
 Sys.AddElement( 2 , 2 , 3 , 5 , 1 , 1 );
-Sys.AddElement( 3 , 2 , 4 , 5 , 1 , 1 );
+%Sys.AddElement( 3 , 2 , 4 , 5 , 1 , 1 );
 
 %Limit Conditions
 Sys.BlockAll(1);
@@ -22,7 +22,7 @@ Sys.BlockAll(1);
 %Solving
 Sys.InitializeMatrix();
 
-fList = Sys.FindModalFreqs(.1,.01,3)
+fList = Sys.FindModalFreqs(.01,.01,11)
 for f = fList
     w = f*2*pi;
     W = Sys.AssociatedMode(w);

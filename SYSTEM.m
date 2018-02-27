@@ -86,6 +86,7 @@ classdef SYSTEM < handle
             end
             obj.sectionList = [obj.sectionList SECTION(id,A,IIn,IOut,J)]; 
         end
+        
         function AddExternalForce(obj,idNode,F)
             node = obj.FindNodeById(idNode);
             node.ExternalForce(F);
@@ -94,6 +95,7 @@ classdef SYSTEM < handle
             node = obj.FindNodeById(idNode);
             node.ImposedDisplacement(U);
         end
+        
         function AddPonctualMass(obj,idNode,m)
             node = obj.FindNodeById(idNode);
             node.PonctualMass(m);
@@ -204,7 +206,6 @@ classdef SYSTEM < handle
             
             Name = strcat('Deformated Structure Preview ( ',num2str(w/(2*pi),'%.3f'),' Hz )');
             figure('Name',Name,'NumberTitle','off');
-            w = w;
             
             % Scale Definition
             UMax = -1;
@@ -440,12 +441,14 @@ classdef SYSTEM < handle
                 i = i + 1;
             end
         end
+        
         function M = ProblemMatrix(obj,w)
             n = 12*size(obj.elementList,2);
             obj.GlobalTransmission(w);
             obj.GlobalDispersion(w);
             M = (eye(n)-obj.T*obj.D);
         end
+        
         function x = RandomWave(obj)
             n = 12*size(obj.elementList,2);
             x = rand(n,1);
@@ -487,8 +490,9 @@ classdef SYSTEM < handle
             X = V(:,Min);
             X = X;
         end
+        
         function X = GlobalInitialWave(obj,w)
-            X = zeros(size(obj.elementList,2),1);
+            X = zeros(size(obj.elementList,2)*12,1);
             for node = obj.nodeList
                 n = size(node.elementList,2);
                 if n ~= 0
@@ -498,7 +502,7 @@ classdef SYSTEM < handle
         end
         function X = LocalInitialWave(obj,node,w)
             
-            X = zeros(size(obj.elementList,2),1);
+            X = zeros(size(obj.elementList,2)*12,1);
             n = size(node.elementList,2);
             
             % Free Case
@@ -636,11 +640,11 @@ classdef SYSTEM < handle
             end
         end
         function X = ForcedResponse(obj,w)
-            W = obj.GlobalnitialWave(w);
+            W = obj.GlobalInitialWave(w);
             obj.GlobalDispersion(w);
             obj.GlobalTransmission(w);
             n = size(obj.elementList,2);
-            X = Sys.ProblemMatrix(w)/W;
+            X = obj.ProblemMatrix(w)\W;
         end
     end
     
