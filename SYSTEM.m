@@ -53,9 +53,14 @@ classdef SYSTEM < handle
             section  = obj.FindSectionById(idSection);
             obj.elementList = [obj.elementList  {ELEMENT(id,nodeNeg,nodePos,nodeRef,material,section)}];
         end
-        function AddCurvedElement(obj,id,idNodeNeg,idNodePos,idNodeRef,Angle,idMaterial,idSection)
-            if idNodeNeg==idNodePos|idNodeRef==idNodePos
+        function AddCurvedElement(obj,id,idNodeNeg,idNodePos,idNodeCenter,idMaterial,idSection,idNodeRef)
+            if idNodeNeg==idNodePos|idNodeCenter==idNodePos
                error("Elements must be defined by three different nodes");
+            end
+            if nargin<8
+                nodeRef = NaN;
+            else
+                nodeRef = obj.FindNodeById(idNodeRef);
             end
             for element = obj.elementList
                 element = element{1};
@@ -63,12 +68,13 @@ classdef SYSTEM < handle
                     error("Elements' id conflict");
                 end
             end
-            nodeNeg  = obj.findNodeById(idNodeNeg);
-            nodePos  = obj.findNodeById(idNodePos);
-            nodeRef  = obj.findNodeById(idNodeRef);
-            material = obj.findMaterialById(idMaterial);
-            section  = obj.findSectionById(idSection);
-            obj.elementList = [obj.elementList  {CURVEDELEMENT(id,nodeNeg,nodePos,nodeRef,Angle,material,section)}];
+            nodeNeg  = obj.FindNodeById(idNodeNeg);
+            nodePos  = obj.FindNodeById(idNodePos);
+            nodeRef  = obj.FindNodeById(idNodeRef);
+            nodeCenter = obj.FindNodeById(idNodeCenter);
+            material = obj.FindMaterialById(idMaterial);
+            section  = obj.FindSectionById(idSection);
+            obj.elementList = [obj.elementList  {CURVEDELEMENT(id,nodeNeg,nodePos,nodeCenter,material,section,nodeRef)}];
         end
         function AddMaterial(obj,id,Young,Poisson,Density)
             for material = obj.materialList

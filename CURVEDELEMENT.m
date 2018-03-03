@@ -38,7 +38,7 @@ classdef CURVEDELEMENT < handle
             obj.IIn = section.SecondMomentIn;
             obj.IOut = section.SecondMomentOut;
             obj.J =  section.TorsionMoment;
-            obj.Izz = obj.IIn + obj.IOut;            
+            obj.Izz = obj.IIn + obj.IOut;
             obj.nodeNeg = nodeNeg;
             obj.nodeNeg.addElement(obj);
             obj.nodePos = nodePos;
@@ -234,7 +234,7 @@ classdef CURVEDELEMENT < handle
         end
         function x = e2(obj,r)
             e1 = obj.e1(r);
-            x = cross(e1,obj.plane);
+            x = -cross(e1,obj.plane);
         end
         function x = e3(obj,r)
             x = obj.plane;
@@ -322,16 +322,29 @@ classdef CURVEDELEMENT < handle
             angle = acos(r1'*r2);
         end
         
+        %from local coordinates to global coordinates
+        function P = toGlobal(obj)
+            e1 = obj.e1(obj.nodeNeg.r);
+            e2 = obj.e2(obj.nodeNeg.r);
+            e3 = obj.e3(obj.nodeNeg.r);
+            P = [e1 e2 e3];
+        end
+        
+        %rotate a point t degrees around e3 axis
+        function R = rot(obj,t)
+            R = [cos(t) sin(t) 0; -sin(t) cos(t) 0; 0 0 1];
+        end
+        
         function plane = setPlane(obj,nodeRef)
-            r1 = obj.center - obj.nodePos.r;
-            r2 = obj.center - obj.nodeNeg.r;
+            r1 = obj.nodePos.r - obj.center;
+            r2 = obj.nodeNeg.r - obj.center;
             plane = cross(r1,r2);
             if norm(plane) < 1e-3
                 if nodeRef == NaN
                     error('Reference node not provided')
                 end
                 r1 = nodeRef.r - obj.nodePos.r;
-                r2 = nodeRef.r - obj.nodeNeg.r;
+                r2 = obj.nodeNeg.r - nodeRef.r;
                 plane = cross(r1,r2);
             end                
         end
@@ -351,8 +364,20 @@ classdef CURVEDELEMENT < handle
             X = diag( [exp(-1i*s*obj.ki(w,2)) exp(-1i*s*obj.ki(w,1)) exp(-1i*s*obj.ki(w,3)) exp(-1i*s*obj.ko(w,1)) exp(-1i*s*obj.ko(w,3)) exp(-1i*s*obj.ko(w,2))]);
         end
         
-        % Rotation Operator
-        function X = Rotation(obj,r)
+        %Rotation, length as input
+        function X = Rotation(obj,L)
+            t =  L/obj.R;
+            r1 = inv(obj.toGlobal)*(obj.nodeNeg.r - obj.center);
+            r = obj.rot(t)*r1;
+            r = obj.toGlobal*r + obj.center;
+            X = [inv([obj.e1(r) obj.e2(r) obj.e3(r)])                           zeros(3);
+                                    zeros(3)        inv([obj.e1(r) obj.e2(r) obj.e3(r)])];                        
+            
+        end
+        
+        
+        % Rotation Operator, coordinates as input
+        function X = RotationCoord(obj,r)
             X = [inv([obj.e1(r) obj.e2(r) obj.e3(r)])                           zeros(3);
                                     zeros(3)        inv([obj.e1(r) obj.e2(r) obj.e3(r)])];                        
         end
