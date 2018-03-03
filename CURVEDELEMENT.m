@@ -28,33 +28,31 @@ classdef CURVEDELEMENT < handle
     end
     methods
         
-        function obj =  CURVEDELEMENT(id,nodeNeg,nodePos,rho,S,E,G,IIn,IOut,center,plane)
+        function obj =  CURVEDELEMENT(id,nodeNeg,nodePos,nodeCenter,material,section,nodeRef)
             
             obj.id = id;
-            obj.rho = rho;
-            obj.S = S;
-            obj.E = E;
-            obj.G = G;
-            obj.J = IIn + IOut; %verificar
-            obj.IIn = IIn;
-            obj.IOut = IOut;
-            obj.Izz = IIn + IOut;
-            obj.J = obj.Izz;
-            obj.plane = plane/norm(plane);
-            
+            obj.rho = material.Density;
+            obj.S = section.Area;
+            obj.E = material.YoungModule;
+            obj.G = ( material.YoungModule / ( 2 * ( 1 + material.PoissonCoef) ) );
+            obj.IIn = section.SecondMomentIn;
+            obj.IOut = section.SecondMomentOut;
+            obj.J =  section.TorsionMoment;
+            obj.Izz = obj.IIn + obj.IOut;            
             obj.nodeNeg = nodeNeg;
             obj.nodeNeg.addElement(obj);
             obj.nodePos = nodePos;
             obj.nodePos.addElement(obj);
-            obj.center = center;            
-            if (nodeNeg.r-nodePos.r)'*plane ~= 0
+            obj.center = nodeCenter.r;
+            obj.plane = obj.setPlane(nodeRef);
+            if (nodeNeg.r-nodePos.r)'*obj.plane ~= 0
                 error("Normal must be perpendicular to the beam's plane")
             end
             
-            if norm(nodeNeg.r-center) ~= norm(nodePos.r-center)
+            if norm(nodeNeg.r-obj.center) ~= norm(nodePos.r-obj.center)
                 error('Not equidistant')
             end
-            obj.R =  norm(nodeNeg.r-center);
+            obj.R =  norm(nodeNeg.r-obj.center);
             
             obj.angle = obj.setAngle();
             obj.L = obj.setL();
@@ -322,6 +320,20 @@ classdef CURVEDELEMENT < handle
             r2 = (obj.center - obj.nodePos.r);
             r2 = r2/norm(r2);
             angle = acos(r1'*r2);
+        end
+        
+        function plane = setPlane(obj,nodeRef)
+            r1 = obj.center - obj.nodePos.r;
+            r2 = obj.center - obj.nodeNeg.r;
+            plane = cross(r1,r2);
+            if norm(plane) < 1e-3
+                if nodeRef == NaN
+                    error('Reference node not provided')
+                end
+                r1 = nodeRef.r - obj.nodePos.r;
+                r2 = nodeRef.r - obj.nodeNeg.r;
+                plane = cross(r1,r2);
+            end                
         end
       
         %Set length

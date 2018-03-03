@@ -29,16 +29,17 @@ classdef ELEMENT < handle
     methods
         
         % Definition methods
-        function obj =  ELEMENT(id,nodeNeg,nodePos,rho,S,E,G,IIn,IOut)
+        function obj =  ELEMENT(id,nodeNeg,nodePos,nodeRef,material,section)
             
             obj.id = id;
-            obj.rho = rho;
-            obj.S = S;
-            obj.E = E;
-            obj.G = G;
-            obj.IIn = IIn;
-            obj.IOut = IOut;
-            obj.J = IIn + IOut;
+            obj.rho = material.Density;
+            obj.S = section.Area;
+            obj.E = material.YoungModule;
+            obj.G = ( material.YoungModule / ( 2 * ( 1 + material.PoissonCoef) ) );
+            obj.IIn = section.SecondMomentIn;
+            obj.IOut = section.SecondMomentOut;
+            obj.J =  section.TorsionMoment;
+            
             obj.nodeNeg = nodeNeg;
             obj.nodeNeg.addElement(obj);
             obj.nodePos = nodePos;
@@ -46,8 +47,11 @@ classdef ELEMENT < handle
             
             obj.L = norm( nodePos.r - nodeNeg.r );
             obj.e1 = ( nodePos.r - nodeNeg.r ) / obj.L;
-            obj.e2 = [0;0;0];
-            obj.e3 = [0;0;0];
+            
+            obj.e2 = ( nodeRef.r - nodeNeg.r );
+            obj.e2 = obj.e2 - (obj.e2'*obj.e1)*obj.e1;
+            obj.e2 = obj.e2/norm(obj.e2);
+            obj.e3 = cross(obj.e1,obj.e2);
             
         end
         
@@ -105,24 +109,12 @@ classdef ELEMENT < handle
         end
         
         % Rotation Operator
-        function X = Rotation(obj)
-            X = [inv([obj.e1 obj.e2 obj.e3])                           zeros(3);
-                                    zeros(3)        inv([obj.e1 obj.e2 obj.e3])];
+        function X = Rotation(obj,s)
+            X = [([obj.e1 obj.e2 obj.e3])                         zeros(3);
+                                 zeros(3)        ([obj.e1 obj.e2 obj.e3])];
         end
 
-        
-        % Post-Treatment Methods
-        function setElementPlane(obj,v)
-            if ( v' * obj.e1 ) < .05 
-                obj.e3 = v - ( v' * obj.e1 ) * obj.e1;
-                obj.e3 = obj.e3 / norm(obj.e3);
-                obj.e2 = cross(obj.e3,obj.e1);
-            else
-                error('Input error: Structure Plane not coherent with elements direction')
-            end
-        end
-        
-        function show(obj)
+        function Show(obj)
             
             X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
             Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
@@ -130,35 +122,46 @@ classdef ELEMENT < handle
             
             p = plot3(X,Y,Z);   
             p.Color = 'k';
+            
             hold on;
             
-            X = (obj.nodeNeg.r(1) + obj.nodePos.r(1))/2 ;
-            Y = (obj.nodeNeg.r(2) + obj.nodePos.r(2))/2 ;
-            Z = (obj.nodeNeg.r(3) + obj.nodePos.r(3))/2 ;
-            
-            U = obj.e1(1)*obj.L;
-            V = obj.e1(2)*obj.L;
-            W = obj.e1(3)*obj.L;
-            
-            p = quiver3(X,Y,Z,U,V,W,.15);
-            p.Color = 'red';
-            
-            U = obj.e2(1)*obj.L;
-            V = obj.e2(2)*obj.L;
-            W = obj.e2(3)*obj.L;
-            
-            p = quiver3(X,Y,Z,U,V,W,.15);
-            p.Color = 'blue';
-            
-            U = obj.e3(1)*obj.L;
-            V = obj.e3(2)*obj.L;
-            W = obj.e3(3)*obj.L;
-            
-            p = quiver3(X,Y,Z,U,V,W,.15);
-            p.Color = 'green';
-            
         end
-        function showDeformated(obj,W,w,nDiv)
+        function ShowReferential(obj,scale)
+            x = (obj.nodeNeg.r(1) + obj.nodePos.r(1))/2;
+            y = (obj.nodeNeg.r(2) + obj.nodePos.r(2))/2;
+            z = (obj.nodeNeg.r(3) + obj.nodePos.r(3))/2;
+            
+            X = [x];
+            Y = [y];
+            Z = [z];
+            
+            X = [X x + obj.e2(1) * ( 0.05 * scale * obj.L)] ;
+            Y = [Y y + obj.e2(2) * ( 0.05 * scale * obj.L)] ;
+            Z = [Z z + obj.e2(3) * ( 0.05 * scale *  obj.L)] ;
+            
+            X = [X x + obj.e1(1) * ( 0.15 * scale *  obj.L)] ;
+            Y = [Y y + obj.e1(2) * ( 0.15 * scale *  obj.L)] ;
+            Z = [Z z + obj.e1(3) * ( 0.15 * scale *  obj.L)] ;
+            
+            fill3(X,Y,Z,'g');
+            
+            X = [x];
+            Y = [y];
+            Z = [z];
+            
+            X = [X x + obj.e3(1) * ( 0.05 * scale *  obj.L)] ;
+            Y = [Y y + obj.e3(2) * ( 0.05 * scale *  obj.L)] ;
+            Z = [Z z + obj.e3(3) * ( 0.05 * scale *  obj.L)] ;
+            
+            X = [X x + obj.e1(1) * ( 0.15 * scale *  obj.L)] ;
+            Y = [Y y + obj.e1(2) * ( 0.15 * scale *  obj.L)] ;
+            Z = [Z z + obj.e1(3) * ( 0.15 * scale *  obj.L)] ;
+            
+            fill3(X,Y,Z,'r');
+            
+            hold on;
+        end
+        function ShowDeformated(obj,W,w,nDiv)
             
             X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
             Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
@@ -193,6 +196,7 @@ classdef ELEMENT < handle
             hold on;
             
         end
+        
     end
     
 end
