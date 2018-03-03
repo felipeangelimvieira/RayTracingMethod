@@ -38,7 +38,7 @@ classdef CURVEDELEMENT < handle
             obj.IIn = section.SecondMomentIn;
             obj.IOut = section.SecondMomentOut;
             obj.J =  section.TorsionMoment;
-            obj.Izz = obj.IIn + obj.IOut;
+            obj.Izz = obj.IIn + obj.IOut;            
             obj.nodeNeg = nodeNeg;
             obj.nodeNeg.addElement(obj);
             obj.nodePos = nodePos;

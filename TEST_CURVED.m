@@ -4,7 +4,16 @@ import SYSTEM
 
 Sys = SYSTEM();
 
-Sys = SYSTEM();
+
+Radius = 0.5;
+R = 0.01;
+rho = 7.86e3;
+S = pi*R^2;
+E = 210e9;
+G =(210e9)/2.6;
+IIn =  pi/4*R^4;
+IOut =  pi/4*R^4;
+
 
 %Material and Section
 Sys.AddMaterial( 1 , 210e9 , .3 , 7.86e3 ); %Steel
