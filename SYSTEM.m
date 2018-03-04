@@ -461,7 +461,12 @@ classdef SYSTEM < handle
             end
             if NewDiffIsPos & OldDiffIsNeg
                 fp = fminbnd(@(t) obj.RayleighProblemMatrix(t*2*pi,v),f-fStep*3,f+fStep,options);
-                x = [x fp];
+                vp = eig(obj.ProblemMatrix(fp*2*pi));
+                tol = 0.0001;
+                numberOfModes = sum(abs(vp)<tol); %number of eigen values near 0
+                for i =1:numberOfModes
+                    x = [x fp];
+                end
             end
             yAnt = yNow;
             OldDiffIsNeg = 1 - NewDiffIsPos;

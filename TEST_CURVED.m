@@ -1,5 +1,5 @@
 import SYSTEM
-
+close all
 %%
 Sys = SYSTEM();
 
@@ -20,9 +20,8 @@ Sys.AddSection( 1 , area , IIn , IOut , IIn+IOut ); %Round 1mm
 Sys.AddNode( 0 , [ 0.5 ; 0 ; 0 ] ); %center
 Sys.AddNode( 1 , [ 0 ; 0 ; 0 ] );
 Sys.AddNode( 2 , [ 1 ; 0 ; 0 ] );
-Sys.AddNode( 3 , [ 1 ; 1 ; 0 ] );%nodeRef
-Sys.AddNode( 4 , [ 1 ; -1 ; 0 ] );%nodeRef
-
+Sys.AddNode( 3 , [ 0.5 ; 1 ; 0 ] );%nodeRef
+Sys.AddNode( 4 , [ 0.5 ; -1 ; 0 ] );%nodeRef
 
 %Elements
 Sys.AddCurvedElement( 1 , 1 , 2 , 0 , 1 , 1, 3 );
@@ -47,8 +46,15 @@ for f = 4:1:200
     F = [F f];
 end
 
-fList = Sys.FindModalFreqs(40,.01,44);
+fList = Sys.FindModalFreqs(120,.01,125);
 
 plot(F,Y);
+
+for f = fList
+    w = f*2*pi;
+    W = Sys.AssociatedMode(w);
+    Sys.ShowDeformatedStructure(W,w);
+end
+
 % -R <Ansys workbench script file>
 %http://www.mechanicsandmachines.com/?p=306

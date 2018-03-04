@@ -228,8 +228,8 @@ classdef CURVEDELEMENT < handle
         function x = e1(obj,r)
             r1 = (r - obj.center)/norm(r - obj.center);
             x = cross(obj.plane,r1);
-            if norm(x) - 1 >0.0001
-                error('Referential not normalized')
+            if dot(x,r1)>0.001
+                error('e1 axis must be perpendicular to radial direction')
             end
         end
         function x = e2(obj,r)
@@ -319,7 +319,7 @@ classdef CURVEDELEMENT < handle
             r1 = r1/norm(r1);
             r2 = (obj.center - obj.nodePos.r);
             r2 = r2/norm(r2);
-            angle = acos(r1'*r2);
+            angle = real(acos(r1'*r2));
         end
         
         %from local coordinates to global coordinates
@@ -347,6 +347,7 @@ classdef CURVEDELEMENT < handle
                 r2 = obj.nodeNeg.r - nodeRef.r;
                 plane = cross(r1,r2);
             end                
+            plane = plane/norm(plane);
         end
       
         %Set length
@@ -364,12 +365,16 @@ classdef CURVEDELEMENT < handle
             X = diag( [exp(-1i*s*obj.ki(w,2)) exp(-1i*s*obj.ki(w,1)) exp(-1i*s*obj.ki(w,3)) exp(-1i*s*obj.ko(w,1)) exp(-1i*s*obj.ko(w,3)) exp(-1i*s*obj.ko(w,2))]);
         end
         
+        %from a length input returns coordinates in global coord system
+        function r = getCoordFromDistance(obj,L)
+            t =  L/obj.R; % angle
+            r1 = inv(obj.toGlobal)*(obj.nodeNeg.r - obj.center); %node neg position in the local coordinates
+            r = obj.rot(t)*r1; %rotation in the local coordinates around the circle center
+            r = obj.toGlobal*r + obj.center; 
+        end
         %Rotation, length as input
         function X = Rotation(obj,L)
-            t =  L/obj.R;
-            r1 = inv(obj.toGlobal)*(obj.nodeNeg.r - obj.center);
-            r = obj.rot(t)*r1;
-            r = obj.toGlobal*r + obj.center;
+            r = obj.getCoordFromDistance(L);
             X = [inv([obj.e1(r) obj.e2(r) obj.e3(r)])                           zeros(3);
                                     zeros(3)        inv([obj.e1(r) obj.e2(r) obj.e3(r)])];                        
             
@@ -405,13 +410,42 @@ classdef CURVEDELEMENT < handle
             
         end
         
-        function plotCircle3D(obj,center,normal,radius)
-            v=null(normal');
-            phase = atan((obj.nodePos.r - obj.nodeNeg.r)/norm(obj.nodePos.r - obj.nodeNeg.r)/v(:,1));
-            phase = 0;
-            theta=phase:0.01/(2*pi)*obj.angle:(phase+obj.angle);
-            points=repmat(center,1,size(theta,2))+radius*(v(:,1)*cos(theta)+v(:,2)*sin(theta));
-            plot3(points(1,:),points(2,:),points(3,:),'k');
+        %show structure
+        function Show(obj,nDiv)
+            dl = obj.L/(nDiv-1);
+            y = ones(3,nDiv);
+            for i = 0:nDiv
+                y(:,i+1) = obj.getCoordFromDistance(dl*i);
+            end
+            plot3(y(1,:),y(2,:),y(3,:))
+            p.Color = 'k';
+            hold on;
+        end
+        
+        %W wave coefficients, w frequency
+        function ShowDeformated(obj,W,w,nDiv)
+            obj.Show(nDiv)
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            
+            X = [];
+            Y = [];
+            Z = [];
+            
+            dl = obj.L/(nDiv-1);
+            for i=0:nDiv
+                s = obj.getCoordFromDistance(dl*i);
+                u = obj.Rotation(i*dl)*obj.PsiPos(w)*obj.Delta(w,i*dl)*WPos + obj.Rotation(i*dl)*obj.PsiNeg(w)*obj.Delta(w,obj.L - i*dl)*WNeg;
+                u = real(u(1:3));
+                
+                X = [X ( s(1) + u(1))];
+                Y = [Y ( s(2) + u(2))];
+                Z = [Z ( s(3) + u(3))];
+            end
+            p = plot3(X,Y,Z);   
+            p.Color = 'k';
+            hold on;
+            
         end
         
     end
