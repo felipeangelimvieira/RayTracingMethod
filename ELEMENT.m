@@ -161,7 +161,9 @@ classdef ELEMENT < handle
             
             hold on;
         end
-        function ShowDeformated(obj,W,w,nDiv)
+        function ShowDeformated(obj,W,w)
+            
+            nDiv = obj.IdealNumberPlotPoints(w);
             
             X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
             Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
@@ -194,6 +196,43 @@ classdef ELEMENT < handle
             p = plot3(X,Y,Z);   
             p.Color = 'k';
             hold on;
+            
+        end
+        
+        function x = DisplacementAtPoint(obj,W,w,s)
+            if s > obj.L | s < 0
+                error('Point not incluse in beam');
+            end
+            x = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
+        end
+        function x = IdealNumberPlotPoints(obj,w)
+            
+            % We chose here 13 points for showing one sinus half-period
+            nIdealFlexIn  = ceil( 12 * (obj.L/((pi)/obj.kfIn(w)))) ;
+            nIdealFlexOut = ceil( 12 * (obj.L/((pi)/obj.kfOut(w))));
+            n = max([nIdealFlexIn nIdealFlexOut]);
+            if n < 12
+                x = 12;
+                return
+            end
+            x = n;
+            
+        end
+        function x = DisplacementMax(obj,W,w)
+            
+            nDiv = obj.IdealNumberPlotPoints(w);
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            U = [];
+            for i=0:(nDiv-1)
+                
+                s = obj.e1 * obj.L * ( i / (nDiv - 1) );
+                u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
+                u = real(u);
+                U = [U u];
+                
+            end
+            x = max(U,[],2);
             
         end
         

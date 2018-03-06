@@ -52,8 +52,10 @@ Sys.BlockAll(4);
 %Solving
 Sys.InitializeMatrix();
 
+%%
+fList = Sys.FindModalFreqs(1,.01,2)
 
-fList = Sys.FindModalFreqs(.01,.01,10);
+%%
 for f = fList
     w = f*2*pi;
     W = Sys.AssociatedMode(w);

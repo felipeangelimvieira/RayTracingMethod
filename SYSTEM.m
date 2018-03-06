@@ -217,7 +217,7 @@ classdef SYSTEM < handle
             j = 12;
             for element = obj.elementList
                 element = element{1};
-                element.ShowDeformated(W(i:j),w,20);
+                element.ShowDeformated(W(i:j),w);
                 i = i+12;
                 j = j+12;
             end
@@ -461,42 +461,31 @@ classdef SYSTEM < handle
             end
             if NewDiffIsPos & OldDiffIsNeg
                 fp = fminbnd(@(t) obj.RayleighProblemMatrix(t*2*pi,v),f-fStep*3,f+fStep,options);
-                vp = eig(obj.ProblemMatrix(fp*2*pi));
-                tol = 0.0001;
-                numberOfModes = sum(abs(vp)<tol); %number of eigen values near 0
-                for i =1:numberOfModes
-                    x = [x fp];
-                end
+                x = [x fp];
             end
             yAnt = yNow;
             OldDiffIsNeg = 1 - NewDiffIsPos;
             end
         end
         function X = AssociatedMode(obj,w)
+            
             [V,D] = eig(obj.ProblemMatrix(w));
             D = diag(D);
             [~,Min] = min(D);
             W = V(:,Min);
             
             % Scale Definition
-            UMax = -1;
+            RU = [];
             i = 0;
             for element = obj.elementList
                 element = element{1};
-                WPos = W((i+1):(i+6));
-                WNeg = W((i+7):(i+12));
-                S = 0:(.05*element.L):element.L;
-                for s = S
-                    U = element.PsiPos(w)*element.Delta(w,s)*WPos + element.PsiNeg(w)*element.Delta(w,element.L-s)*WNeg;
-                    U = real(U(1:3));
-                    if norm(U)>UMax
-                        UMax = norm(U);
-                        LMax = element.L;
-                    end
-                end
+                WLocal = W((i+1):(i+12));
+                UMax = element.DisplacementMax(WLocal,w);
+                ru = norm(UMax(1:3))/element.L;
+                RU = [RU ru];
                 i = i+12;
             end 
-            scale = .30 * (LMax/UMax);
+            scale = .15 * (1 / max(RU));
             W = W*scale;
             
             X = W;
@@ -658,6 +647,7 @@ classdef SYSTEM < handle
             n = size(obj.elementList,2);
             X = obj.ProblemMatrix(w)\W;
         end
+        
     end
     
 end

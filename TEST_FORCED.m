@@ -20,6 +20,8 @@ Sys.AddNode( 10 , [ 1 ; 0 ; 2 ] );
 Sys.AddNode( 11 , [ 1 ; 1 ; 2 ] );
 Sys.AddNode( 12 , [ 0 ; 1 ; 2 ] );
 
+Sys.AddNode( 13 , [ .5 ; .5 ; 2.5 ] );
+
 Sys.AddNode( 100 , [ 100 ; 100 ; 100 ] );
 
 %Elements
@@ -43,16 +45,22 @@ Sys.AddElement( 32 , 10 , 11 , 100 , 1 , 1 );
 Sys.AddElement( 33 , 11 , 12 , 100 , 1 , 1 );
 Sys.AddElement( 34 , 12 , 9 , 100 , 1 , 1 );
 
+Sys.AddElement( 41 , 9 , 13 , 100 , 1 , 1 );
+Sys.AddElement( 42 , 10 , 13 , 100 , 1 , 1 );
+Sys.AddElement( 43 , 11 , 13 , 100 , 1 , 1 );
+Sys.AddElement( 44 , 12 , 13 , 100 , 1 , 1 );
+
 %Limit Conditions
 Sys.BlockAll(1);
 Sys.BlockAll(2);
 Sys.BlockAll(3);
 Sys.BlockAll(4);
 
+%Ressorts, Dampers...
+Sys.AddDamper(5,10000,[0;1;0]);
+
 %External excitation
-Sys.AddExternalForce(9,[0;0;0;0;0;0]);
-Sys.AddExternalForce(11,[0;0;0;0;0;0]);
-Sys.AddImposedDisplacement(1,[0;.1;0;0;0;0]);
+Sys.AddExternalForce(13,[0;0;0;0;0;.5]);
 
 
 %Solving

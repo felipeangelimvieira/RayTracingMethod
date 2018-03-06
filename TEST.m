@@ -22,7 +22,7 @@ Sys.BlockAll(1);
 %Solving
 Sys.InitializeMatrix();
 
-fList = Sys.FindModalFreqs(.01,.01,11)
+fList = Sys.FindModalFreqs(.01,.01,5)
 for f = fList
     w = f*2*pi;
     W = Sys.AssociatedMode(w);
