@@ -18,11 +18,14 @@ Sys.AddElement( 2 , 2 , 3 , 5 , 1 , 1 );
 
 %Limit Conditions
 Sys.BlockAll(1);
+Sys.BlockAllTranslation(3);
+Sys.BlockRotationDirection(3,[1;0;0]);
+Sys.BlockRotationDirection(3,[0;1;0]);
 
 %Solving
 Sys.InitializeMatrix();
 
-fList = Sys.FindModalFreqs(.01,.01,5)
+fList = Sys.FindModalFreqs(.1,.1,100)
 for f = fList
     w = f*2*pi;
     W = Sys.AssociatedMode(w);

@@ -433,34 +433,21 @@ classdef SYSTEM < handle
             M = (eye(n)-obj.T*obj.D);
         end
         
-        function x = RandomWave(obj)
-            n = 12*size(obj.elementList,2);
-            x = rand(n,1);
-            x = x/norm(x);
-        end
-        function x = RayleighProblemMatrix(obj,w,v)
-            M = obj.ProblemMatrix(w);
-            y = M\v;
-            x = 1/norm(y);
-            y = y/norm(y);
-        end
         function x = FindModalFreqs(obj,fMin,fStep,fMax)
             
-            v = obj.RandomWave();
-            yAnt=obj.RayleighProblemMatrix(fMin*2*pi,v);
             options = optimset('TolX',.001);
             OldDiffIsNeg = 0;
             x = [];
-
-            for f = fMin:fStep:fMax
-            yNow = obj.RayleighProblemMatrix(f*2*pi,v);
+            yAnt=abs(det(obj.ProblemMatrix(fMin*2*pi)));
+            for f = (fMin+fStep):fStep:fMax
+            yNow = abs(det(obj.ProblemMatrix(f*2*pi)));
             if yNow<yAnt
                 NewDiffIsPos = 0;
             else
                 NewDiffIsPos = 1;
             end
             if NewDiffIsPos & OldDiffIsNeg
-                fp = fminbnd(@(t) obj.RayleighProblemMatrix(t*2*pi,v),f-fStep*3,f+fStep,options);
+                fp = fminbnd(@(t) abs(det(obj.ProblemMatrix(t*2*pi))),f-fStep*3,f+fStep,options);
                 x = [x fp];
             end
             yAnt = yNow;
@@ -469,10 +456,22 @@ classdef SYSTEM < handle
         end
         function X = AssociatedMode(obj,w)
             
-            [V,D] = eig(obj.ProblemMatrix(w));
+            M = obj.ProblemMatrix(w);
+            [V,D] = eig(M);
             D = diag(D);
-            [~,Min] = min(D);
-            W = V(:,Min);
+            [~,I] = min(D);
+            W = V(:,I);
+            N = size(M,1);
+            for n=3:6:N
+                if(conj(W(n))>0)
+                    W = conj(W(n))*W;
+                end
+            end
+            for n=5:6:N
+                if(conj(W(n))>0)
+                    W = conj(W(n))*W;
+                end
+            end
             
             % Scale Definition
             RU = [];

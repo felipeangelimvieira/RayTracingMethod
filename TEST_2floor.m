@@ -53,7 +53,7 @@ Sys.BlockAll(4);
 Sys.InitializeMatrix();
 
 %%
-fList = Sys.FindModalFreqs(1,.01,2)
+fList = Sys.FindModalFreqs(.1,.1,10)
 
 %%
 for f = fList
