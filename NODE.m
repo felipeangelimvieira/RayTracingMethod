@@ -92,10 +92,10 @@ classdef NODE < handle
             error('Element not linked to node')
         end
         function X = FreedomInGlobal(obj)
-            X = obj.Rotation*obj.DeltaFree;
+            X = obj.DeltaFree*obj.Rotation;
         end
         function X = RestrictionInGlobal(obj)
-            X = obj.Rotation*(eye(6)-obj.DeltaFree);
+            X = (eye(6)-obj.DeltaFree)*obj.Rotation;
         end
         function X = Rotation(obj)
             X = [inv([obj.t1 obj.t2 obj.t3])                           zeros(3);
