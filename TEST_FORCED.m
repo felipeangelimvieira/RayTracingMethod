@@ -57,16 +57,17 @@ Sys.BlockAll(3);
 Sys.BlockAll(4);
 
 %Ressorts, Dampers...
-Sys.AddDamper(5,10000,[0;1;0]);
+
 
 %External excitation
-Sys.AddExternalForce(13,[0;0;0;0;0;.5]);
+Sys.AddExternalForce(13,[0;0;0;0;0;10]);
+Sys.AddExternalForce(6,[0;0;0;0;0;10]);
+Sys.AddExternalForce(8,[0;0;0;0;0;10]);
 
 
 %Solving
 Sys.InitializeMatrix();
 
-f = 2;
-w = f*2*pi;
-W = Sys.ForcedResponse(w);
-Sys.ShowDeformatedStructure(W,w);
+F = 0.01:.01:5;
+Y = Sys.FrequencyResponse(F,41,.5);
+plot(F,Y);

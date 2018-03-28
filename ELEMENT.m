@@ -203,7 +203,10 @@ classdef ELEMENT < handle
             if s > obj.L | s < 0
                 error('Point not incluse in beam');
             end
-            x = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            u = real(obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg);
+            x = norm(u(1:3));
         end
         function x = IdealNumberPlotPoints(obj,w)
             
@@ -228,7 +231,7 @@ classdef ELEMENT < handle
                 
                 s = obj.e1 * obj.L * ( i / (nDiv - 1) );
                 u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
-                u = real(u);
+                u = norm(real(u(1:3)));
                 U = [U u];
                 
             end

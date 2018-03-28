@@ -480,7 +480,7 @@ classdef SYSTEM < handle
                 element = element{1};
                 WLocal = W((i+1):(i+12));
                 UMax = element.DisplacementMax(WLocal,w);
-                ru = norm(UMax(1:3))/element.L;
+                ru = UMax/element.L;
                 RU = [RU ru];
                 i = i+12;
             end 
@@ -645,6 +645,21 @@ classdef SYSTEM < handle
             obj.GlobalTransmission(w);
             n = size(obj.elementList,2);
             X = obj.ProblemMatrix(w)\W;
+        end
+        function X = FrequencyResponse(obj,F,idElement,s)
+            element = obj.FindElementById(idElement);
+            for i=1:size(obj.elementList)
+               if element==obj.elementList(i)
+                   break
+               end
+            end
+            X = [];
+            for f=F
+                w = f*2*pi;
+                W = obj.ForcedResponse(w);
+                W = W(( i*12 - 11 ):( i*12 ));
+                X = [X element.DisplacementAtPoint(W,w,s)];
+            end
         end
         
     end
