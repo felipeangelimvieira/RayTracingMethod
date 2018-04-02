@@ -179,7 +179,7 @@ classdef SYSTEM < handle
                     return
                 end
             end
-            error('No node with such id');
+            error('No section with such id');
         end
         
         function ShowStructure(obj)
@@ -434,8 +434,8 @@ classdef SYSTEM < handle
         end
         
         function x = FindModalFreqs(obj,fMin,fStep,fMax)
-            
-            options = optimset('TolX',.001);
+            tol = 0.001;
+            options = optimset('TolX',tol);
             OldDiffIsNeg = 0;
             x = [];
             yAnt=abs(det(obj.ProblemMatrix(fMin*2*pi)));
@@ -448,10 +448,44 @@ classdef SYSTEM < handle
             end
             if NewDiffIsPos & OldDiffIsNeg
                 fp = fminbnd(@(t) abs(det(obj.ProblemMatrix(t*2*pi))),f-fStep*3,f+fStep,options);
+                [~,D] = eig(obj.ProblemMatrix(fp*2*pi));
+                nbOfModes = (sum(diag(D)<tol));
+                for k = 1:nbOfModes
                 x = [x fp];
+                end
             end
             yAnt = yNow;
             OldDiffIsNeg = 1 - NewDiffIsPos;
+            end
+        end
+        
+        %find modal freqs. nb = desired number of modes
+        function x = FindModalFreqs2(obj,nb,fStep)
+            fMin =  0.001;
+            tol = 0.001;
+            options = optimset('TolX',tol);
+            OldDiffIsNeg = 0;
+            x = [];
+            yAnt=abs(det(obj.ProblemMatrix(fMin*2*pi)));
+            f = (fMin+fStep);
+            while (size(x,2) < nb)
+            yNow = abs(det(obj.ProblemMatrix(f*2*pi)));
+            if yNow<yAnt
+                NewDiffIsPos = 0;
+            else
+                NewDiffIsPos = 1;
+            end
+            if NewDiffIsPos & OldDiffIsNeg
+                fp = fminbnd(@(t) abs(det(obj.ProblemMatrix(t*2*pi))),f-fStep*3,f+fStep,options);
+                [~,D] = eig(obj.ProblemMatrix(fp*2*pi));
+                nbOfModes = (sum(diag(D)<tol));
+                for k = 1:nbOfModes
+                x = [x fp];
+                end
+            end
+            yAnt = yNow;
+            OldDiffIsNeg = 1 - NewDiffIsPos;
+            f = f + fStep;
             end
         end
         function X = AssociatedMode(obj,w)
