@@ -2,10 +2,12 @@ classdef MATERIAL < handle
     
     properties
         
-        id
-        YoungModule
-        PoissonCoef
-        Density
+        id %Integer identifying the material type
+        
+        %----Properties-----
+        YoungModule %Young's Module of material
+        PoissonCoef %Poisson's Coeficient of material
+        Density %Volumetric Mass Density of material
         
     end
     
