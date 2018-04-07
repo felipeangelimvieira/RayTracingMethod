@@ -497,12 +497,12 @@ classdef SYSTEM < handle
             W = V(:,I);
             N = size(M,1);
             for n=3:6:N
-                if(conj(W(n))>0)
+                if(real(W(n))>0.0001)
                     W = conj(W(n))*W;
                 end
             end
             for n=5:6:N
-                if(conj(W(n))>0)
+                if(real(W(n))>0.0001)
                     W = conj(W(n))*W;
                 end
             end
