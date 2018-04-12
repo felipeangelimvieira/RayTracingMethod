@@ -496,19 +496,9 @@ classdef SYSTEM < handle
             [~,I] = min(D);
             W = V(:,I);
             N = size(M,1);
-            for n=3:6:N
-                if(real(W(n))>0.0001)
-                    W = conj(W(n))*W;
-                end
-            end
-            for n=5:6:N
-                if(real(W(n))>0.0001)
-                    W = conj(W(n))*W;
-                end
-            end
             
             % Scale Definition
-            RU = [];
+            RU = [];            
             i = 0;
             for element = obj.elementList
                 element = element{1};
@@ -518,9 +508,8 @@ classdef SYSTEM < handle
                 RU = [RU ru];
                 i = i+12;
             end 
-            scale = .15 * (1 / max(RU));
+            scale = .15 * (1 / max(max(RU)));
             W = W*scale;
-            
             X = W;
             
         end

@@ -283,7 +283,13 @@ classdef CURVEDELEMENT < handle
         if imag(x)>0
             x = -x;
         end
+        if abs(imag(x)) < 0.000001 
+            if real(x) > 0
+                x = -x;
+            end 
         end
+        end
+        
         function x = ko(obj,w,id)
         E = obj.E;
         IIn = obj.IIn; %Ix in Chouvion's Thesis
@@ -308,13 +314,18 @@ classdef CURVEDELEMENT < handle
         z1 = -1/3*a2 + s1 + s2;
         z2 = -1/3*a2 - 1/2*(s1 + s2) + 1i*sqrt(3)/2*(s1 - s2);
         z3 = -1/3*a2 - 1/2*(s1 + s2) - 1i*sqrt(3)/2*(s1 - s2);
-        %z = [z3; z1; z2]; %ki1, ki2 and ki3 respectively
+        %z = [z3; z1; z2]; %ki1, ki2 and ki3 respectively backup
         %z = [z2;z1;z3];
-        z = [z3;z1;z2];
+        z = [z1;z3;z2];
         z = sqrt(z);
         x = z(id);
         if imag(x)>0
             x = -x;
+        end
+        if abs(imag(x)) < 0.000001 
+            if real(x) < 0
+                x = -x;
+            end 
         end
         end
         

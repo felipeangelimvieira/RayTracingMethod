@@ -1,10 +1,10 @@
 import SYSTEM
 %close all
-clear
+
 %%
 Sys = SYSTEM();
 
-R = 0.0001;
+R = 0.00001;
 area = pi*R^2;
 rho = 7.86e3;
 S = pi*R^2;
@@ -27,8 +27,8 @@ Sys.AddNode( 5 , [ 0.5 ; -1 ; 0 ] );%nodeRef
 Sys.AddNode( 6 , [ 0.5 ; 1 ; 0 ] );%nodeRef
 
 %Elements
-Sys.AddCurvedElement( 1 , 1 , 3, 0 , 1 , 1, 6 );
-Sys.AddCurvedElement( 2 , 1, 3, 0 , 1 , 1, 5 );
+Sys.AddCurvedElement( 1 , 1 , 3, 0 , 1 , 1, 5 );
+%Sys.AddCurvedElement( 2 , 3, 1, 0 , 1 , 1, 6 );
 %Sys.AddCurvedElement( 3 , 3 , 4 , 0 , 1 , 1, 5 );
 %Sys.AddCurvedElement( 2 , 1 , 3 , 0 , 1 , 1, 5 );
 
@@ -37,21 +37,21 @@ format long
 %Limit Conditions
 Sys.BlockAll(1);
 %Sys.BlockAll(3);
-%Sys.BlockAllRotation(1)
+%Sys.BlockAllRotation(2)
 
 %Sys.BlockTranslationDirection(1,[0;1;0])
 %Sys.BlockTranslationDirection(1,[0;0;1])
-%Sys.BlockTranslationDirection(3,[1;0;0])
-%Sys.BlockTranslationDirection(3,[0;0;1])
+Sys.BlockTranslationDirection(3,[0;0;1])
+Sys.BlockTranslationDirection(3,[1;0;0])
 %Sys.BlockAllTranslation(1)
-Sys.BlockAllTranslation(3)
+%Sys.BlockAllTranslation(3)
 
-Sys.BlockRotationDirection(1,[0;0;1])
-Sys.BlockRotationDirection(1,[0;1;0])
+%Sys.BlockRotationDirection(1,[0;0;1])
+%Sys.BlockRotationDirection(1,[0;1;0])
 %Sys.BlockRotationDirection(3,[1;0;0])
-%Sys.BlockRotationDirection(3,[0;0;1])
+%Sys.BlockRotationDirection(3,[0;1;0])
 %Sys.BlockAllRotation(1)
-%Sys.BlockAllRotation(3)
+Sys.BlockAllRotation(3)
 %Sys.BlockTranslationDirection(1,[0;0;1])
 %Sys.BlockTranslationDirection(3,[0;0;1])
 
@@ -63,7 +63,7 @@ figure();
 F = [];
 Y = [];
 
-for f = 0.09:0.001:5
+for f = 0.01:0.0001:.5
     
     M = (Sys.ProblemMatrix(f*2*pi));
     Y = [Y abs(det(M))];
@@ -71,6 +71,10 @@ for f = 0.09:0.001:5
     F = [F f];
 end
 plot(F,Y);
+
+
+el1 =  Sys.elementList{1};
+%el2 = Sys.elementList {2};
 
 pl = 0 ;
 if pl
