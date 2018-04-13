@@ -65,8 +65,8 @@ classdef CURVEDELEMENT < handle
         end
         function xo = Xo(obj,w,ind)
             koi = obj.ko(w,ind);
-            %xo = (koi^2*obj.R*(obj.G*obj.J + obj.E*obj.IIn))/(obj.rho*obj.R^2*obj.S*w^2 - (obj.E*obj.IIn*obj.R^2*koi^4 + obj.G*obj.J*koi^2));
-            xo = (-obj.G*obj.J*obj.R^2*koi^2  - obj.E*obj.IIn + obj.rho*obj.Izz*obj.R^2*w^2)/(obj.R*koi^2*(obj.G*obj.J+obj.E*obj.IIn));
+            xo = (koi^2*obj.R*(obj.G*obj.J + obj.E*obj.IIn))/(obj.rho*obj.R^2*obj.S*w^2 - (obj.E*obj.IIn*obj.R^2*koi^4 + obj.G*obj.J*koi^2));
+            %xo = (-obj.G*obj.J*obj.R^2*koi^2  - obj.E*obj.IIn + obj.rho*obj.Izz*obj.R^2*w^2)/(obj.R*koi^2*(obj.G*obj.J+obj.E*obj.IIn));
             %xo = abs(xo);
         end
         
@@ -211,13 +211,13 @@ classdef CURVEDELEMENT < handle
             E4 = G*J*(1i*ko3/Xo3 + 1i*ko3/R);
             F4 = G*J*(+1i*ko1 + 1i*ko1*Xo1/R); %ok
             
-%             D3 = E*IIn*(1i*ko2^3 + 1i*ko2/(R*Xo2)) + D4/R;
-%             E3 = E*IIn*(1i*ko3^3 + 1i*ko3/(R*Xo3)) + E4/R;
-%             F3 = E*IIn*(1i*ko1^3*Xo1 + 1i*ko1/R) + F4/R;  %ok          
+             D3 = E*IIn*(1i*ko2^3 + 1i*ko2/(R*Xo2)) + D4/R;
+             E3 = E*IIn*(1i*ko3^3 + 1i*ko3/(R*Xo3)) + E4/R;
+             F3 = E*IIn*(1i*ko1^3*Xo1 + 1i*ko1/R) + F4/R;  %ok          
 
-             D3 = E*IIn*(1i*ko2^3 + 1i*ko2/(R*Xo2)) + G*J/R*(1i*ko2/Xo2 + 1i*ko2/R);
-             E3 = E*IIn*(1i*ko3^3 + 1i*ko3/(R*Xo3)) + G*J/R*(1i*ko3/Xo3 + 1i*ko3/R);
-             F3 = E*IIn*(1i*ko1^3*Xo1 + 1i*ko1/R) + G*J/R*(1i*ko1 + 1i*ko1*Xo1/R);  %ok          
+%              D3 = E*IIn*(1i*ko2^3 + 1i*ko2/(R*Xo2)) + G*J/R*(1i*ko2/Xo2 + 1i*ko2/R);
+%              E3 = E*IIn*(1i*ko3^3 + 1i*ko3/(R*Xo3)) + G*J/R*(1i*ko3/Xo3 + 1i*ko3/R);
+%              F3 = E*IIn*(1i*ko1^3*Xo1 + 1i*ko1/R) + G*J/R*(1i*ko1 + 1i*ko1*Xo1/R);  %ok          
  
 
             D5 = E*IIn*( 1/(R*Xo2) + ko2^2);
@@ -476,6 +476,16 @@ classdef CURVEDELEMENT < handle
             p.Color = 'k';
             hold on;
             
+        end
+        
+        function x = DisplacementAtPoint(obj,W,w,s)
+            if s > obj.L | s < 0
+                error('Point not incluse in beam');
+            end
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            u = real(obj.Rotation(s)*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation(s)*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg);
+            x = norm(u(1:3));
         end
         
     end
