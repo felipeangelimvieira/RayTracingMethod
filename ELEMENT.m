@@ -199,6 +199,38 @@ classdef ELEMENT < handle
             
         end
         
+        function [X0,Y0,Z0,X,Y,Z] = GetDeformated(obj,W,w)
+            nDiv = obj.IdealNumberPlotPoints(w);            
+            X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
+            Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
+            Z = [obj.nodeNeg.r(3) obj.nodePos.r(3)];
+            
+            X = [];
+            Y = [];
+            Z = [];
+            
+            X0 = [];
+            Y0 = [];
+            Z0 = [];
+            
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            
+            for i=0:(nDiv-1)          
+                s = obj.e1 * obj.L * ( i / (nDiv - 1) );
+                u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
+                u = abs(u(1:3)).*real(u(1:3))./abs(real(u(1:3)));
+                
+                X0 = [X0 s(1)+ obj.nodeNeg.r(1)];
+                Y0 = [Y0 s(2) + obj.nodeNeg.r(2)];
+                Z0 = [Z0 s(3) + obj.nodeNeg.r(3)];
+                
+                X = [X u(1)];
+                Y = [Y u(2)];
+                Z = [Z u(3)];            
+            end
+        end
+        
         function x = DisplacementAtPoint(obj,W,w,s)
             if s > obj.L | s < 0
                 error('Point not incluse in beam');
@@ -231,7 +263,7 @@ classdef ELEMENT < handle
                 
                 s = obj.e1 * obj.L * ( i / (nDiv - 1) );
                 u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
-                u = norm(real(u(1:3)));
+                u = norm(abs(u(1:3)));
                 U = [U u];
                 
             end

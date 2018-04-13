@@ -7,6 +7,9 @@ classdef SYSTEM < handle
         sectionList
         elementList
         nodeList
+        freqList
+        deformatedList
+        deformatedAnsys
         
         % Global Matrix
         T
@@ -22,7 +25,9 @@ classdef SYSTEM < handle
             obj.nodeList = {};
             obj.materialList = {};
             obj.sectionList = {};
+            obj.deformatedList = {};
             
+            obj.freqList = [];
             obj.T = [];
             obj.D = [];
             
@@ -434,7 +439,7 @@ classdef SYSTEM < handle
         end
         
         function x = FindModalFreqs(obj,fMin,fStep,fMax)
-            tol = 0.001;
+            tol = 0.0000001;
             options = optimset('TolX',tol);
             OldDiffIsNeg = 0;
             x = [];
@@ -449,7 +454,7 @@ classdef SYSTEM < handle
             if NewDiffIsPos & OldDiffIsNeg
                 fp = fminbnd(@(t) abs(det(obj.ProblemMatrix(t*2*pi))),f-fStep*3,f+fStep,options);
                 [~,D] = eig(obj.ProblemMatrix(fp*2*pi));
-                nbOfModes = (sum(diag(D)<tol));
+                nbOfModes = (sum(abs(diag(D))<tol));
                 for k = 1:nbOfModes
                 x = [x fp];
                 end
@@ -461,8 +466,8 @@ classdef SYSTEM < handle
         
         %find modal freqs. nb = desired number of modes
         function x = FindModalFreqs2(obj,nb,fStep)
-            fMin =  0.001;
-            tol = 0.001;
+            fMin =  fStep;
+            tol = 0.0000001;
             options = optimset('TolX',tol);
             OldDiffIsNeg = 0;
             x = [];
@@ -478,7 +483,7 @@ classdef SYSTEM < handle
             if NewDiffIsPos & OldDiffIsNeg
                 fp = fminbnd(@(t) abs(det(obj.ProblemMatrix(t*2*pi))),f-fStep*3,f+fStep,options);
                 [~,D] = eig(obj.ProblemMatrix(fp*2*pi));
-                nbOfModes = (sum(diag(D)<tol));
+                nbOfModes = (sum(abs(diag(D))<tol));
                 for k = 1:nbOfModes
                 x = [x fp];
                 end
@@ -512,6 +517,20 @@ classdef SYSTEM < handle
             W = W*scale;
             X = W;
             
+        end
+        
+        %no scaling
+        function X = AssociatedMode2(obj,w,number)
+            
+            M = obj.ProblemMatrix(w);
+            [V,D] = eig(M);
+            D = diag(D);
+            [~,I] = min(D);
+            if nargin >2
+            sortedD = sort(D);
+            I = find(D == sortedD(number)); 
+            end
+            X = V(:,I);
         end
         
         function X = GlobalInitialWave(obj,w)
@@ -683,6 +702,320 @@ classdef SYSTEM < handle
                 W = W(( i*12 - 11 ):( i*12 ));
                 X = [X element.DisplacementAtPoint(W,w,s)];
             end
+        end
+        
+        function ModalAnalysis(obj,nb,fStep)
+            
+            obj.freqList = obj.FindModalFreqs2(nb,fStep);
+
+            freqList = obj.freqList;
+            
+            k = 1;
+            
+            %on fait parcourir la liste de freq du début jusqu'à la fin
+            while size(freqList,2)+1>k
+                
+                %la fréquence analisée
+                f = freqList(k);
+                nbOfModes = sum(freqList == f);
+
+                for nb = 1:nbOfModes
+                    w = f*2*pi;
+                    W = obj.AssociatedMode2(w,nb);
+
+                    i = 1;
+                    j = 12;
+                    elNumb = 1; %nombre de l'élément
+                    deformatedMode = {};
+                    
+                    for element = obj.elementList
+                        element = element{1};
+                        [X0,Y0,Z0,X,Y,Z] = element.GetDeformated(W(i:j),w);
+                        el.x0 = X0;
+                        el.y0 = Y0;
+                        el.z0 = Z0;
+                        el.x = X;
+                        el.y = Y;
+                        el.z = Z;
+                        i = i+12;
+                        j = j+12;
+                        deformatedMode{elNumb} = el;
+                        elNumb =  elNumb + 1;
+               
+                    end
+                    obj.deformatedList{k} = deformatedMode;
+                    k = k + 1;
+                end
+            end
+            
+        end
+        
+        %plot a vibration mode
+        function PlotMode(obj,number,scale)
+            if size(obj.freqList,2) == 0
+                error('Please call Modal Analysis first');
+            end
+            
+            if nargin < 3
+               scale = 1; 
+            end
+            
+            mode = obj.deformatedList{number};
+%             maxDisplacement = 0;
+%             for element = 1:size(mode,2)
+%                for subelement = size(mode{element}.x,2)
+%                    displacement =  abs(mode{element}.x(subelement) + mode{element}.y(subelement) + mode{element}.z(subelement));
+%                    if displacement > maxDisplacement
+%                        maxDisplacement = displacement;
+%                    end
+%                end
+%             end
+%             
+
+            displacement = [];
+            for element = 1:size(mode,2)
+               for subelement = size(mode{element}.x,2)
+                   displacement =  [displacement abs(mode{element}.x(subelement) + mode{element}.y(subelement) + mode{element}.z(subelement))];
+               end
+            end
+            
+            unityFactor = sqrt(norm(displacement));
+            %Name = strcat('Deformated Structure Preview ( ',num2str(obj.freqList(number),'%.3f'),' Hz )');
+            %figure('Name',Name,'NumberTitle','off');
+            
+            
+            for element = 1:size(mode,2)
+                dispX = mode{element}.x/unityFactor*scale;
+                dispY = mode{element}.y/unityFactor*scale;
+                dispZ = mode{element}.z/unityFactor*scale;
+                plot3(mode{element}.x0 + dispX,mode{element}.y0 + dispY,mode{element}.z0 + dispZ,'k')
+                hold on
+                plot3(mode{element}.x0,mode{element}.y0,mode{element}.z0,'--k')
+                hold on
+            end     
+            
+            for node = obj.nodeList
+                node.Show();
+            end
+            
+            daspect([1 1 1]);
+        end
+        
+        function PlotFromAnsysList(obj,path)
+            
+            fid = fopen(path);
+            dataTxt = textscan(fid, '%s', 'Delimiter', '\n');
+            dataTxt = dataTxt{1};
+
+            elMode = 0;
+            elements = {};
+            nodes = {};
+            for k = 1:size(dataTxt,1)
+                line = dataTxt{k};
+                words = split(line,["          ","         ","        ","       ","      ","     ","    ","   ","  "," "]);
+                if strcmp(words{1},"ELEM")
+                   elMode = 1;
+                end
+                if strcmp(words{1},"NODE")
+                   elMode = 0; 
+                end
+                if elMode && size(words{1},1)>0 && all(ismember(words{1}, '0123456789+-.eEdD'))
+                   id = str2num(words{1});
+                   node1 = str2num(words{7});
+                   node2 = str2num(words{8});
+                   el.node1 = node1;
+                   el.node2 = node2;
+                   elements{id} = el;
+                end
+                if ~elMode && size(words{1},1)>0 && all(ismember(words{1}, '0123456789+-.eEdD'))
+                   id = str2num(words{1});
+                   x = str2num(words{2});
+                   y = str2num(words{3});
+                   z = str2num(words{4});
+                   node.x = x;
+                   node.y = y;
+                   node.z = z;
+                   nodes{id} = node;
+                end
+            end
+            hold on
+            for element = 1:size(elements,2)
+                node1 = nodes{elements{element}.node1};
+                node2 = nodes{elements{element}.node2};
+                X = [node1.x node2.x];
+                Y = [node1.y node2.y];
+                Z = [node1.z node2.z];
+                plot3(X,Y,Z,'b')
+                hold on
+            end
+        end
+        
+        function StructureFromAnsys(obj,path)
+            fid = fopen(path);
+            dataTxt = textscan(fid, '%s', 'Delimiter', '\n');
+            dataTxt = dataTxt{1};
+            X0 = [];
+            Y0 = [];
+            Z0 = [];
+            
+            elMode = 0;
+            elements = {};
+            nodes = {};
+            for k = 1:size(dataTxt,1)
+                line = dataTxt{k};
+                words = split(line,["          ","         ","        ","       ","      ","     ","    ","   ","  "," "]);
+                if strcmp(words{1},"ELEM")
+                   elMode = 1;
+                end
+                if strcmp(words{1},"NODE")
+                   elMode = 0; 
+                end
+                if elMode && size(words{1},1)>0 && all(ismember(words{1}, '0123456789+-.eEdD'))
+                   id = str2num(words{1});
+                   node1 = str2num(words{7});
+                   node2 = str2num(words{8});
+                   el.node1 = node1;
+                   el.node2 = node2;
+                   elements{id} = el;
+                end
+                if ~elMode && size(words{1},1)>0 && all(ismember(words{1}, '0123456789+-.eEdD'))
+                   id = str2num(words{1});
+                   x = str2num(words{2});
+                   y = str2num(words{3});
+                   z = str2num(words{4});
+                   node.x = x;
+                   node.y = y;
+                   node.z = z;
+                   nodes{id} = node;
+                end
+            end
+            
+            for node = 1:size(nodes,2)
+                X0 = [X0 nodes{node}.x];
+                Y0 = [Y0 nodes{node}.y];
+                Z0 = [Z0 nodes{node}.z];
+            end
+            
+            obj.deformatedAnsys.x0 = X0;
+            obj.deformatedAnsys.y0 = Y0;
+            obj.deformatedAnsys.z0 = Z0;
+        end
+        
+        function DeformatedFromAnsys(obj,path)
+            fid = fopen(path);
+            dataTxt = textscan(fid, '%s', 'Delimiter', '\n');
+            dataTxt = dataTxt{1};
+            X = [];
+            Y = [];
+            Z = [];
+            
+            elMode = 0;
+            elements = {};
+            nodes = {};
+            for k = 1:size(dataTxt,1)
+                line = dataTxt{k};
+                words = split(line,["          ","         ","        ","       ","      ","     ","    ","   ","  "," "]);
+                if strcmp(words{1},"ELEM")
+                   elMode = 1;
+                end
+                if strcmp(words{1},"NODE")
+                   elMode = 0; 
+                end
+                if elMode && size(words{1},1)>0 && all(ismember(words{1}, '0123456789+-.eEdD'))
+                   id = str2num(words{1});
+                   node1 = str2num(words{7});
+                   node2 = str2num(words{8});
+                   el.node1 = node1;
+                   el.node2 = node2;
+                   elements{id} = el;
+                end
+                if ~elMode && size(words{1},1)>0 && all(ismember(words{1}, '0123456789+-.eEdD'))
+                   id = str2num(words{1});
+                   x = str2num(words{2});
+                   y = str2num(words{3});
+                   z = str2num(words{4});
+                   node.x = x;
+                   node.y = y;
+                   node.z = z;
+                   nodes{id} = node;
+                end
+            end
+            
+            for node = 1:size(nodes,2)
+                X = [X nodes{node}.x];
+                Y = [Y nodes{node}.y];
+                Z = [Z nodes{node}.z];
+            end
+            
+            obj.deformatedAnsys.x = X - obj.deformatedAnsys.x0;
+            obj.deformatedAnsys.y = Y - obj.deformatedAnsys.y0;
+            obj.deformatedAnsys.z = Z - obj.deformatedAnsys.z0;
+        end
+        
+        function CompareToAnsys(obj,number)
+            
+            if size(obj.freqList,2) == 0
+                error('Please call Modal Analysis first');
+            end
+            
+            if nargin < 3
+               scale = 1; 
+            end
+            
+            mode = obj.deformatedList{number};
+%             maxDisplacement = 0;
+%             for element = 1:size(mode,2)
+%                for subelement = size(mode{element}.x,2)
+%                    displacement =  abs(mode{element}.x(subelement) + mode{element}.y(subelement) + mode{element}.z(subelement));
+%                    if displacement > maxDisplacement
+%                        maxDisplacement = displacement;
+%                    end
+%                end
+%             end
+%             
+
+            displacement = [];
+            for element = 1:size(mode,2)
+               for subelement = size(mode{element}.x,2)
+                   displacement =  [displacement abs(mode{element}.x(subelement) + mode{element}.y(subelement) + mode{element}.z(subelement))];
+               end
+            end
+            
+            
+            
+            displacementAnsys = [];
+            for node = 1:size(obj.deformatedAnsys.x,2)
+               displacementAnsys =  [displacementAnsys abs(obj.deformatedAnsys.x(node) + obj.deformatedAnsys.y(node) + obj.deformatedAnsys.z(node) )];
+            end
+            unityFactorAnsys = sqrt(norm(displacementAnsys));
+            
+            scale = unityFactorAnsys/unityFactor;
+
+            
+            
+            
+            %Name = strcat('Deformated Structure Preview ( ',num2str(obj.freqList(number),'%.3f'),' Hz )');
+            %figure('Name',Name,'NumberTitle','off');
+            
+            
+            for element = 1:size(mode,2)
+                dispX = mode{element}.x*scale;
+                dispY = mode{element}.y*scale;
+                dispZ = mode{element}.z*scale;
+                
+                plot3(mode{element}.x0 + dispX,mode{element}.y0 + dispY,mode{element}.z0 + dispZ,'k')
+                hold on
+                plot3(mode{element}.x0,mode{element}.y0,mode{element}.z0,'--k')
+                hold on
+            end     
+            
+            for node = obj.nodeList
+                node.Show();
+            end
+            
+            daspect([1 1 1]);
+ 
+            
         end
         
     end

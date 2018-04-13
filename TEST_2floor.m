@@ -1,23 +1,33 @@
+clear
 Sys = SYSTEM();
 
+R = 0.001;
+area = pi*R^2;
+rho = 7.86e3;
+S = pi*R^2;
+E = 210e9;
+G =(210e9)/2.6;
+IIn =  pi/4*R^4;
+IOut =  pi/4*R^4;
+
 %Material and Section
-Sys.AddMaterial( 1 , 210e9 , .3 , 7.86e3 ); %Steel
-Sys.AddSection( 1 , 3.1416e-06 , 7.8540e-13 , 7.8540e-13 , 1.5708e-12 ); %Round 1mm
+Sys.AddMaterial( 1 , E , .3 , rho ); %Steel
+Sys.AddSection( 1 , area , IIn , IOut , IIn+IOut ); 
 
 %Nodes
 Sys.AddNode( 1 , [ 0 ; 0 ; 0 ] );
-Sys.AddNode( 2 , [ 1 ; 0 ; 0 ] );
-Sys.AddNode( 3 , [ 1 ; 1 ; 0 ] );
+Sys.AddNode( 2 , [ 2 ; 0 ; 0 ] );
+Sys.AddNode( 3 , [ 2 ; 1 ; 0 ] );
 Sys.AddNode( 4 , [ 0 ; 1 ; 0 ] );
 
 Sys.AddNode( 5 , [ 0 ; 0 ; 1 ] );
-Sys.AddNode( 6 , [ 1 ; 0 ; 1 ] );
-Sys.AddNode( 7 , [ 1 ; 1 ; 1 ] );
+Sys.AddNode( 6 , [ 2 ; 0 ; 1 ] );
+Sys.AddNode( 7 , [ 2 ; 1 ; 1 ] );
 Sys.AddNode( 8 , [ 0 ; 1 ; 1 ] );
 
 Sys.AddNode( 9  , [ 0 ; 0 ; 2 ] );
-Sys.AddNode( 10 , [ 1 ; 0 ; 2 ] );
-Sys.AddNode( 11 , [ 1 ; 1 ; 2 ] );
+Sys.AddNode( 10 , [ 2 ; 0 ; 2 ] );
+Sys.AddNode( 11 , [ 2 ; 1 ; 2 ] );
 Sys.AddNode( 12 , [ 0 ; 1 ; 2 ] );
 
 Sys.AddNode( 100 , [ 100 ; 100 ; 100 ] );
@@ -52,12 +62,12 @@ Sys.BlockAll(4);
 %Solving
 Sys.InitializeMatrix();
 
-%%
-fList = Sys.FindModalFreqs(.1,.1,10)
-
-%%
-for f = fList
-    w = f*2*pi;
-    W = Sys.AssociatedMode(w);
-    Sys.ShowDeformatedStructure(W,w);
-end
+% %%
+% fList = Sys.FindModalFreqs(.1,.1,10)
+% 
+% %%
+% for f = fList
+%     w = f*2*pi;
+%     W = Sys.AssociatedMode(w);
+%     Sys.ShowDeformatedStructure(W,w);
+% end
