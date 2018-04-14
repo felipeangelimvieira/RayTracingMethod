@@ -478,6 +478,41 @@ classdef CURVEDELEMENT < handle
             
         end
         
+         function [X0,Y0,Z0,X,Y,Z] = GetDeformated(obj,W,w)
+            nDiv = obj.IdealNumberPlotPoints(w);   
+            %nDiv = 1000;
+            X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
+            Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
+            Z = [obj.nodeNeg.r(3) obj.nodePos.r(3)];
+            
+            X = [];
+            Y = [];
+            Z = [];
+            
+            X0 = [];
+            Y0 = [];
+            Z0 = [];
+            
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            
+            dl = obj.L/(nDiv-1);
+            for i=0:(nDiv-1)          
+                s = obj.getCoordFromDistance(dl*i);
+                u = obj.Rotation(i*dl)*obj.PsiPos(w)*obj.Delta(w,i*dl)*WPos + obj.Rotation(i*dl)*obj.PsiNeg(w)*obj.Delta(w,obj.L - i*dl)*WNeg;
+                u = abs(u(1:3)).*sign(angle(u(1:3)));%.*real(u(1:3))./abs(real(u(1:3)));
+                
+                
+                X0 = [X0 s(1)+ obj.nodeNeg.r(1)];
+                Y0 = [Y0 s(2) + obj.nodeNeg.r(2)];
+                Z0 = [Z0 s(3) + obj.nodeNeg.r(3)];
+                
+                X = [X u(1)];
+                Y = [Y u(2)];
+                Z = [Z u(3)];            
+            end
+        end
+        
         function x = DisplacementAtPoint(obj,W,w,s)
             if s > obj.L | s < 0
                 error('Point not incluse in beam');

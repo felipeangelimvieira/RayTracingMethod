@@ -41,8 +41,8 @@ Sys.BlockAll(1);
 
 %Sys.BlockTranslationDirection(1,[0;1;0])
 %Sys.BlockTranslationDirection(1,[0;0;1])
-Sys.BlockTranslationDirection(3,[0;0;1])
-Sys.BlockTranslationDirection(3,[1;0;0])
+%Sys.BlockTranslationDirection(3,[0;0;1])
+%Sys.BlockTranslationDirection(3,[1;0;0])
 %Sys.BlockAllTranslation(1)
 %Sys.BlockAllTranslation(3)
 
@@ -51,7 +51,7 @@ Sys.BlockTranslationDirection(3,[1;0;0])
 %Sys.BlockRotationDirection(3,[1;0;0])
 %Sys.BlockRotationDirection(3,[0;1;0])
 %Sys.BlockAllRotation(1)
-Sys.BlockAllRotation(3)
+%Sys.BlockAllRotation(3)
 %Sys.BlockTranslationDirection(1,[0;0;1])
 %Sys.BlockTranslationDirection(3,[0;0;1])
 
@@ -63,6 +63,9 @@ figure();
 F = [];
 Y = [];
 
+Sys.ModalAnalysis(5,0.001)
+
+if 0
 for f = 0.01:0.0001:.5
     
     M = (Sys.ProblemMatrix(f*2*pi));
@@ -75,7 +78,7 @@ plot(F,Y);
 
 el1 =  Sys.elementList{1};
 %el2 = Sys.elementList {2};
-
+end
 pl = 0 ;
 if pl
 fList = Sys.FindModalFreqs2(0.8,0.1,9);

@@ -780,6 +780,7 @@ classdef SYSTEM < handle
             end
             
             unityFactor = sqrt(norm(displacement));
+            unityFactor = 1;
             %Name = strcat('Deformated Structure Preview ( ',num2str(obj.freqList(number),'%.3f'),' Hz )');
             %figure('Name',Name,'NumberTitle','off');
             
@@ -889,16 +890,14 @@ classdef SYSTEM < handle
                    nodes{id} = node;
                 end
             end
-            
-            for node = 1:size(nodes,2)
-                X0 = [X0 nodes{node}.x];
-                Y0 = [Y0 nodes{node}.y];
-                Z0 = [Z0 nodes{node}.z];
-            end
-            
-            obj.deformatedAnsys.x0 = X0;
-            obj.deformatedAnsys.y0 = Y0;
-            obj.deformatedAnsys.z0 = Z0;
+            F = size(elements,2);
+            for element = 1:F
+               elements{element}.node1 = nodes{elements{element}.node1};
+               elements{element}.node2 = nodes{elements{element}.node2};
+               obj.deformatedAnsys{element}.x0 = [elements{element}.node1.x elements{element}.node2.x];
+               obj.deformatedAnsys{element}.y0 = [elements{element}.node1.y elements{element}.node2.y];
+               obj.deformatedAnsys{element}.z0 = [elements{element}.node1.z elements{element}.node2.z];
+            end           
         end
         
         function DeformatedFromAnsys(obj,path)
@@ -941,18 +940,58 @@ classdef SYSTEM < handle
                 end
             end
             
-            for node = 1:size(nodes,2)
-                X = [X nodes{node}.x];
-                Y = [Y nodes{node}.y];
-                Z = [Z nodes{node}.z];
+            F = size(elements,2);
+            for element = 1:F
+               elements{element}.node1 = nodes{elements{element}.node1};
+               elements{element}.node2 = nodes{elements{element}.node2};
+               
+               obj.deformatedAnsys{element}.x = [elements{element}.node1.x - obj.deformatedAnsys{element}.x0(1),elements{element}.node2.x - obj.deformatedAnsys{element}.x0(2)];
+               obj.deformatedAnsys{element}.y = [elements{element}.node1.y - obj.deformatedAnsys{element}.y0(1),elements{element}.node2.y - obj.deformatedAnsys{element}.y0(2)];
+               obj.deformatedAnsys{element}.z = [elements{element}.node1.z - obj.deformatedAnsys{element}.z0(1),elements{element}.node2.z - obj.deformatedAnsys{element}.z0(2)];
+               
+%                obj.deformatedAnsys{element}.x = [elements{element}.node2.x - obj.deformatedAnsys{element}.x0;
+%                obj.deformatedAnsys{element}.y = [elements{element}.node2.y - obj.deformatedAnsys{element}.y0;
+%                obj.deformatedAnsys{element}.z = [elements{element}.node2.z - obj.deformatedAnsys{element}.z0;
             end
             
-            obj.deformatedAnsys.x = X - obj.deformatedAnsys.x0;
-            obj.deformatedAnsys.y = Y - obj.deformatedAnsys.y0;
-            obj.deformatedAnsys.z = Z - obj.deformatedAnsys.z0;
         end
         
-        function CompareToAnsys(obj,number)
+        function PlotFromAnsys(obj,scale)
+            if size(obj.deformatedAnsys,2) == 0
+                error('Please call  "Structure from Ansys" first');
+            end
+            
+            if nargin < 2
+               scale = 1; 
+            end
+            
+            
+            mode = obj.deformatedAnsys;
+            displacement = [];
+            for element = 1:size(mode,2)
+               for subelement = size(mode{element}.x,2)
+                   displacement =  [displacement abs(mode{element}.x(subelement) + mode{element}.y(subelement) + mode{element}.z(subelement))];
+               end
+            end
+            
+            unityFactor = sqrt(norm(displacement));
+            unityFactor = 1;
+            %Name = strcat('Deformated Structure Preview ( ',num2str(obj.freqList(number),'%.3f'),' Hz )');
+            %figure('Name',Name,'NumberTitle','off');
+            
+            
+            for element = 1:size(mode,2)
+                dispX = mode{element}.x./unityFactor.*scale;
+                dispY = mode{element}.y./unityFactor.*scale;
+                dispZ = mode{element}.z./unityFactor.*scale;
+                plot3(mode{element}.x0 + dispX,mode{element}.y0 + dispY,mode{element}.z0 + dispZ,'b')
+                hold on
+            end     
+            
+            daspect([1 1 1]);
+        end
+        
+        function CompareToAnsys(obj,number,scale)
             
             if size(obj.freqList,2) == 0
                 error('Please call Modal Analysis first');
@@ -980,23 +1019,21 @@ classdef SYSTEM < handle
                    displacement =  [displacement abs(mode{element}.x(subelement) + mode{element}.y(subelement) + mode{element}.z(subelement))];
                end
             end
-            
-            
+            unityFactor = sqrt(norm(displacement));
             
             displacementAnsys = [];
-            for node = 1:size(obj.deformatedAnsys.x,2)
-               displacementAnsys =  [displacementAnsys abs(obj.deformatedAnsys.x(node) + obj.deformatedAnsys.y(node) + obj.deformatedAnsys.z(node) )];
+            for element = 1:size(obj.deformatedAnsys,2)
+               displacementAnsys =  [displacementAnsys abs(obj.deformatedAnsys{element}.x(1) + obj.deformatedAnsys{element}.y(1) + obj.deformatedAnsys{element}.z(1)) abs(obj.deformatedAnsys{element}.x(2) + obj.deformatedAnsys{element}.y(2) + obj.deformatedAnsys{element}.z(2))];
             end
             unityFactorAnsys = sqrt(norm(displacementAnsys));
             
-            scale = unityFactorAnsys/unityFactor;
-
+           
+            unityFactor = sqrt(norm(displacement));
+             
             
             
             
-            %Name = strcat('Deformated Structure Preview ( ',num2str(obj.freqList(number),'%.3f'),' Hz )');
-            %figure('Name',Name,'NumberTitle','off');
-            
+            scale = max(displacementAnsys)/max(displacement)*scale;
             
             for element = 1:size(mode,2)
                 dispX = mode{element}.x*scale;
@@ -1012,6 +1049,8 @@ classdef SYSTEM < handle
             for node = obj.nodeList
                 node.Show();
             end
+            
+            
             
             daspect([1 1 1]);
  

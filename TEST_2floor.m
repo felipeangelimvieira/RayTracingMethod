@@ -61,7 +61,9 @@ Sys.BlockAll(4);
 
 %Solving
 Sys.InitializeMatrix();
-
+Sys.ModalAnalysis(2,0.001);
+Sys.StructureFromAnsys('mode2.txt');
+Sys.DeformatedFromAnsys('mode2def.txt');
 % %%
 % fList = Sys.FindModalFreqs(.1,.1,10)
 % 

@@ -185,7 +185,7 @@ classdef ELEMENT < handle
                 
                 s = obj.e1 * obj.L * ( i / (nDiv - 1) );
                 u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
-                u = abs(u(1:3)).*real(u(1:3))./abs(real(u(1:3)));
+                u = abs(u(1:3)).*sign(angle(u(1:3)));%.*real(u(1:3))./abs(real(u(1:3)));
                 
                 X = [X ( s(1) + u(1) + obj.nodeNeg.r(1))];
                 Y = [Y ( s(2) + u(2) + obj.nodeNeg.r(2))];
@@ -200,7 +200,8 @@ classdef ELEMENT < handle
         end
         
         function [X0,Y0,Z0,X,Y,Z] = GetDeformated(obj,W,w)
-            nDiv = obj.IdealNumberPlotPoints(w);            
+            nDiv = obj.IdealNumberPlotPoints(w);   
+            %nDiv = 1000;
             X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
             Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
             Z = [obj.nodeNeg.r(3) obj.nodePos.r(3)];
@@ -219,7 +220,8 @@ classdef ELEMENT < handle
             for i=0:(nDiv-1)          
                 s = obj.e1 * obj.L * ( i / (nDiv - 1) );
                 u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
-                u = abs(u(1:3)).*real(u(1:3))./abs(real(u(1:3)));
+                u = abs(u(1:3)).*sign(angle(u(1:3)));%.*real(u(1:3))./abs(real(u(1:3)));
+                
                 
                 X0 = [X0 s(1)+ obj.nodeNeg.r(1)];
                 Y0 = [Y0 s(2) + obj.nodeNeg.r(2)];
