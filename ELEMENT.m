@@ -89,17 +89,17 @@ classdef ELEMENT < handle
         function X = PhiPos(obj,w)
             X = [ -obj.E*obj.S*1i*obj.kt(w)                                 0                                 0                                    0                                  0                                          0;
                                          0  -obj.E*obj.IIn*1i*(obj.kfIn(w)^3)    obj.E*obj.IIn* (obj.kfIn(w)^3)                                    0                                  0                                          0;
-                                         0                                  0                                 0  -obj.E*obj.IOut*1i*(obj.kfOut(w)^3)      obj.E*obj.IIn*(obj.kfOut(w)^3)                                         0;
-                                         0                                  0                                 0                                    0                                  0    -1i*obj.G*(obj.J)*obj.kt(w);
-                                         0                                  0                                 0      obj.E*obj.IOut*(obj.kfOut(w)^2)    -obj.E*obj.IIn* (obj.kfOut(w)^2)                                         0;
+                                         0                                  0                                 0  -obj.E*obj.IOut*1i*(obj.kfOut(w)^3)      obj.E*obj.IOut*(obj.kfOut(w)^3)                                         0;
+                                         0                                  0                                 0                                    0                                  0                -1i*obj.G*(obj.J)*obj.kr(w);
+                                         0                                  0                                 0      obj.E*obj.IOut*(obj.kfOut(w)^2)    -obj.E*obj.IOut* (obj.kfOut(w)^2)                                         0;
                                          0    -obj.E*obj.IIn*(obj.kfIn(w)^2)    obj.E*obj.IIn* (obj.kfIn(w)^2)                                    0                                   0                                          0;];
         end
         function X = PhiNeg(obj,w)
             X = [ obj.E*obj.S*1i*obj.kt(w)                                  0                                 0                                  0                                  0                                        0;
                                          0   obj.E*obj.IIn*1i*(obj.kfIn(w)^3)   -obj.E*obj.IIn* (obj.kfIn(w)^3)                                  0                                  0                                        0;
-                                         0                                  0                                 0  obj.E*obj.IOut*1i*(obj.kfOut(w)^3)     -obj.E*obj.IIn*(obj.kfOut(w)^3)                                       0;
-                                         0                                  0                                 0                                  0                                  0    1i*obj.G*(obj.J)*obj.kt(w);
-                                         0                                  0                                 0   obj.E*obj.IOut* (obj.kfOut(w)^2)     -obj.E*obj.IIn*(obj.kfOut(w)^2)                                       0;
+                                         0                                  0                                 0  obj.E*obj.IOut*1i*(obj.kfOut(w)^3)     -obj.E*obj.IOut*(obj.kfOut(w)^3)                                       0;
+                                         0                                  0                                 0                                  0                                  0                1i*obj.G*(obj.J)*obj.kr(w);
+                                         0                                  0                                 0   obj.E*obj.IOut* (obj.kfOut(w)^2)     -obj.E*obj.IOut*(obj.kfOut(w)^2)                                       0;
                                          0    -obj.E*obj.IIn* (obj.kfIn(w)^2)    obj.E*obj.IIn* (obj.kfIn(w)^2)                                  0                                  0                                        0;];
         end
         
@@ -161,8 +161,10 @@ classdef ELEMENT < handle
             
             hold on;
         end
-        function ShowDeformated(obj,W,w,nDiv)
+        
+        function ShowDeformated(obj,W,w)
             
+            nDiv = obj.IdealNumberPlotPoints(w);            
             X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
             Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
             Z = [obj.nodeNeg.r(3) obj.nodePos.r(3)];
@@ -183,8 +185,7 @@ classdef ELEMENT < handle
                 
                 s = obj.e1 * obj.L * ( i / (nDiv - 1) );
                 u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
-                u = real(u(1:3));
-                
+                u = abs(u(1:3)).*sign(angle(u(1:3)));%.*real(u(1:3))./abs(real(u(1:3)));
                 X = [X ( s(1) + u(1) + obj.nodeNeg.r(1))];
                 Y = [Y ( s(2) + u(2) + obj.nodeNeg.r(2))];
                 Z = [Z ( s(3) + u(3) + obj.nodeNeg.r(3))];
@@ -197,6 +198,79 @@ classdef ELEMENT < handle
             
         end
         
+        function [X0,Y0,Z0,X,Y,Z] = GetDeformated(obj,W,w)
+            nDiv = obj.IdealNumberPlotPoints(w);   
+            %nDiv = 1000;
+            X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
+            Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
+            Z = [obj.nodeNeg.r(3) obj.nodePos.r(3)];
+            
+            X = [];
+            Y = [];
+            Z = [];
+            
+            X0 = [];
+            Y0 = [];
+            Z0 = [];
+            
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            
+            for i=0:(nDiv-1)          
+                s = obj.e1 * obj.L * ( i / (nDiv - 1) );
+                u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
+                u = abs(u(1:3)).*sign(angle(u(1:3)));%.*real(u(1:3))./abs(real(u(1:3)));
+                
+                
+                X0 = [X0 s(1)+ obj.nodeNeg.r(1)];
+                Y0 = [Y0 s(2) + obj.nodeNeg.r(2)];
+                Z0 = [Z0 s(3) + obj.nodeNeg.r(3)];
+                
+                X = [X u(1)];
+                Y = [Y u(2)];
+                Z = [Z u(3)];            
+            end
+        end
+        
+        function x = DisplacementAtPoint(obj,W,w,s)
+            if s > obj.L | s < 0
+                error('Point not incluse in beam');
+            end
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            u = real(obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg);
+            x = norm(u(1:3));
+        end
+        function x = IdealNumberPlotPoints(obj,w)
+            
+            % We chose here 13 points for showing one sinus half-period
+            nIdealFlexIn  = ceil( 12 * (obj.L/((pi)/obj.kfIn(w)))) ;
+            nIdealFlexOut = ceil( 12 * (obj.L/((pi)/obj.kfOut(w))));
+            n = max([nIdealFlexIn nIdealFlexOut]);
+            if n < 12
+                x = 12;
+                return
+            end
+            x = n;
+            
+        end
+        function x = DisplacementMax(obj,W,w)
+            
+            nDiv = obj.IdealNumberPlotPoints(w);
+            WPos = W(1:6);
+            WNeg = W(7:12);
+            U = [];
+            for i=0:(nDiv-1)
+                
+                s = obj.e1 * obj.L * ( i / (nDiv - 1) );
+                u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
+                u = norm(abs(u(1:3)));
+                U = [U u];
+                
+            end
+            x = max(U,[],2);
+            
+        end
     end
     
 end

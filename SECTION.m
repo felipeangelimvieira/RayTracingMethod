@@ -2,11 +2,13 @@ classdef SECTION < handle
     
     properties
         
-        id
-        Area
-        SecondMomentIn
-        SecondMomentOut
-        TorsionMoment
+        id %Integer identifying the section type
+        
+        %----Properties-----
+        Area %Section's Area
+        SecondMomentIn %Second Moment of Area in the referential plane
+        SecondMomentOut %Second Moment of Area in the orthogonal direction of the referential plane
+        TorsionMoment %Moment de Torsion de la section
         
         
     end
