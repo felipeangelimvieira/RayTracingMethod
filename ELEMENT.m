@@ -161,10 +161,10 @@ classdef ELEMENT < handle
             
             hold on;
         end
+        
         function ShowDeformated(obj,W,w)
             
-            nDiv = obj.IdealNumberPlotPoints(w);
-            
+            nDiv = obj.IdealNumberPlotPoints(w);            
             X = [obj.nodeNeg.r(1) obj.nodePos.r(1)];
             Y = [obj.nodeNeg.r(2) obj.nodePos.r(2)];
             Z = [obj.nodeNeg.r(3) obj.nodePos.r(3)];
@@ -186,7 +186,6 @@ classdef ELEMENT < handle
                 s = obj.e1 * obj.L * ( i / (nDiv - 1) );
                 u = obj.Rotation*obj.PsiPos(w)*obj.Delta(w,norm(s))*WPos + obj.Rotation*obj.PsiNeg(w)*obj.Delta(w,obj.L - norm(s))*WNeg;
                 u = abs(u(1:3)).*sign(angle(u(1:3)));%.*real(u(1:3))./abs(real(u(1:3)));
-                
                 X = [X ( s(1) + u(1) + obj.nodeNeg.r(1))];
                 Y = [Y ( s(2) + u(2) + obj.nodeNeg.r(2))];
                 Z = [Z ( s(3) + u(3) + obj.nodeNeg.r(3))];
@@ -272,7 +271,6 @@ classdef ELEMENT < handle
             x = max(U,[],2);
             
         end
-        
     end
     
 end

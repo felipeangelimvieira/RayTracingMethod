@@ -18,6 +18,7 @@ Sys.AddMaterial( 1 , E , .3 , rho ); %Steel
 Sys.AddSection( 1 , area , IIn , IOut , IIn+IOut ); %Round 1mm
 
 %Nodes
+
 Sys.AddNode( 0 , [ 0.5 ; 0 ; 0] ); %center
 Sys.AddNode( 1 , [ 0 ; 0 ; 0 ] );
 Sys.AddNode( 2 , [ 0.5 ; -.5 ; 0 ] );
@@ -66,8 +67,7 @@ Y = [];
 Sys.ModalAnalysis(5,0.001)
 
 if 0
-for f = 0.01:0.0001:.5
-    
+for f = 0.01:0.0001:.5    
     M = (Sys.ProblemMatrix(f*2*pi));
     Y = [Y abs(det(M))];
     
@@ -82,8 +82,6 @@ end
 pl = 0 ;
 if pl
 fList = Sys.FindModalFreqs2(0.8,0.1,9);
-
-
 
 for f = fList
     w = f*2*pi;

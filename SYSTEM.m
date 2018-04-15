@@ -438,6 +438,7 @@ classdef SYSTEM < handle
             M = (eye(n)-obj.T*obj.D);
         end
         
+
         function x = FindModalFreqs(obj,fMin,fStep,fMax)
             tol = 0.0000001;
             options = optimset('TolX',tol);
@@ -688,6 +689,7 @@ classdef SYSTEM < handle
             n = size(obj.elementList,2);
             X = obj.ProblemMatrix(w)\W;
         end
+
         function X = FrequencyResponse(obj,F,idElement,s)
             element = obj.FindElementById(idElement);
             for i=1:size(obj.elementList)
@@ -712,10 +714,10 @@ classdef SYSTEM < handle
             
             k = 1;
             
-            %on fait parcourir la liste de freq du début jusqu'à la fin
+            %on fait parcourir la liste de freq du dï¿½but jusqu'ï¿½ la fin
             while size(freqList,2)+1>k
                 
-                %la fréquence analisée
+                %la frï¿½quence analisï¿½e
                 f = freqList(k);
                 nbOfModes = sum(freqList == f);
 
@@ -725,7 +727,7 @@ classdef SYSTEM < handle
 
                     i = 1;
                     j = 12;
-                    elNumb = 1; %nombre de l'élément
+                    elNumb = 1; %nombre de l'ï¿½lï¿½ment
                     deformatedMode = {};
                     
                     for element = obj.elementList
@@ -1055,8 +1057,7 @@ classdef SYSTEM < handle
             daspect([1 1 1]);
  
             
-        end
-        
+        end        
     end
     
 end

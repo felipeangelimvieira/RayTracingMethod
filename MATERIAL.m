@@ -1,7 +1,7 @@
 classdef MATERIAL < handle
     
     properties
-        
+
         id %Integer identifying the material type
         
         %----Properties-----

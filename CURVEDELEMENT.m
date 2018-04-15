@@ -48,6 +48,7 @@ classdef CURVEDELEMENT < handle
             if (nodeNeg.r-nodePos.r)'*obj.plane ~= 0
                 error("Normal must be perpendicular to the beam's plane")
             end
+
             if abs(norm(nodeNeg.r-obj.center) - norm(nodePos.r-obj.center)) > 0.0001
                 error('Not equidistant')
             end
@@ -95,6 +96,7 @@ classdef CURVEDELEMENT < handle
            X(isnan(X)) = 0;
         end
         function X = PsiNeg(obj,w) 
+
             R = obj.R;
             ki1 = obj.ki(w,1);
             ki2 = obj.ki(w,2);
@@ -226,8 +228,7 @@ classdef CURVEDELEMENT < handle
             
             A6 = + E*IOut*(Xi1*ki1^2 + 1i*ki1/R);
             B6 = - E*IOut*(ki2^2 + 1i*ki2/(R*Xi2)); 
-            C6 = - E*IOut*(ki3^2 + 1i*ki3/(R*Xi3)); %ok
-                      
+            C6 = - E*IOut*(ki3^2 + 1i*ki3/(R*Xi3)); %ok                      
             
             X = [ A1 B1 C1 0 0 0;
                 A2 B2 C2 0 0 0;
@@ -283,13 +284,13 @@ classdef CURVEDELEMENT < handle
         if imag(x)>0
             x = -x;
         end
+
         if abs(imag(x)) < 0.000001 
             if real(x) > 0
                 x = -x;
             end 
         end
         end
-        
         function x = ko(obj,w,id)
         E = obj.E;
         IIn = obj.IIn; %Ix in Chouvion's Thesis
@@ -442,6 +443,7 @@ classdef CURVEDELEMENT < handle
             if nargin < 2
                 nDiv = 1000;
             end
+
             dl = obj.L/(nDiv-1);
             y = ones(3,nDiv);
             for i = 0:nDiv

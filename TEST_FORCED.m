@@ -20,6 +20,7 @@ Sys.AddNode( 10 , [ 1 ; 0 ; 2 ] );
 Sys.AddNode( 11 , [ 1 ; 1 ; 2 ] );
 Sys.AddNode( 12 , [ 0 ; 1 ; 2 ] );
 
+
 Sys.AddNode( 13 , [ .5 ; .5 ; 2.5 ] );
 
 Sys.AddNode( 100 , [ 100 ; 100 ; 100 ] );
@@ -64,9 +65,9 @@ Sys.AddExternalForce(13,[0;0;0;0;0;10]);
 Sys.AddExternalForce(6,[0;0;0;0;0;10]);
 Sys.AddExternalForce(8,[0;0;0;0;0;10]);
 
-
 %Solving
 Sys.InitializeMatrix();
+
 
 F = 0.01:.01:5;
 Y = Sys.FrequencyResponse(F,41,.5);
